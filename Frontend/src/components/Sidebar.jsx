@@ -1,19 +1,26 @@
-import { useAuthStore } from '../store/useAuthStore';
-import { useDashboardStore } from '../store/useDashboardStore';
-import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from "../store/useAuthStore";
+import { useDashboardStore } from "../store/useDashboardStore";
+import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, User, Settings, Database,
-  MessageCircle, TicketCheck, PhoneCall, LogOut, Zap
-} from 'lucide-react';
+  LayoutDashboard,
+  User,
+  Settings,
+  Database,
+  MessageCircle,
+  TicketCheck,
+  PhoneCall,
+  LogOut,
+  Zap,
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'profile', label: 'Business Profile', icon: User },
-  { id: 'widget', label: 'Widget Setup', icon: Settings },
-  { id: 'kb', label: 'Knowledge Base', icon: Database },
-  { id: 'conversations', label: 'Conversations', icon: MessageCircle },
-  { id: 'tickets', label: 'Support Tickets', icon: TicketCheck },
-  { id: 'voice', label: 'Voice', icon: PhoneCall },
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "profile", label: "Business Profile", icon: User },
+  { id: "widget", label: "Widget Setup", icon: Settings },
+  { id: "conversations", label: "Conversations", icon: MessageCircle },
+  { id: "tickets", label: "Support Tickets", icon: TicketCheck },
+  { id: "kb", label: "Knowledge Base", icon: Database },
+  // { id: 'voice', label: 'Voice', icon: PhoneCall },
 ];
 
 const Sidebar = ({ tenantName }) => {
@@ -23,7 +30,7 @@ const Sidebar = ({ tenantName }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -33,13 +40,19 @@ const Sidebar = ({ tenantName }) => {
         <div className="w-7 h-7 bg-[#4338ca] rounded-md flex items-center justify-center flex-shrink-0">
           <Zap size={15} className="text-white" />
         </div>
-        <span className="font-semibold text-sm text-[#191c1d] truncate">SupportAI</span>
+        <span className="font-semibold text-sm text-[#191c1d] truncate">
+          SupportAI
+        </span>
       </div>
 
       {/* Tenant label */}
       <div className="px-4 py-3 border-b border-[#e1e3e4]">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-[#777586]">Workspace</p>
-        <p className="text-xs font-medium text-[#191c1d] truncate mt-0.5">{tenantName || 'Loading...'}</p>
+        <p className="text-[10px] font-medium uppercase tracking-widest text-[#777586]">
+          Workspace
+        </p>
+        <p className="text-xs font-medium text-[#191c1d] truncate mt-0.5">
+          {tenantName || "Loading..."}
+        </p>
       </div>
 
       {/* Nav */}
@@ -50,8 +63,8 @@ const Sidebar = ({ tenantName }) => {
             onClick={() => setActiveTab(id)}
             className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors text-left ${
               activeTab === id
-                ? 'bg-[#eef2ff] text-[#4338ca] font-medium'
-                : 'text-[#464554] hover:bg-[#f3f4f5]'
+                ? "bg-[#eef2ff] text-[#4338ca] font-medium"
+                : "text-[#464554] hover:bg-[#f3f4f5]"
             }`}
           >
             <Icon size={16} className="flex-shrink-0" />
