@@ -48,14 +48,14 @@ const STAGES = [
     label: 'Order Management Info',
     allowCsv: true,
     fields: [
-      { label: 'Order Cancellation Window', placeholder: 'e.g., Orders can be cancelled within 1 hour of placing' },
-      { label: 'How to Cancel', placeholder: 'e.g., Via dashboard or email to support' },
-      { label: 'Order Modification Policy', placeholder: 'e.g., Address can be changed before dispatch only' },
-      { label: 'Out-of-Stock Handling', placeholder: 'e.g., Full refund issued within 3 business days' },
-      { label: 'Order Confirmation Method', placeholder: 'e.g., Email + SMS confirmation sent immediately' },
-      { label: 'Invoice / Bill Availability', placeholder: 'e.g., Digital invoice sent via email' },
-      { label: 'COD (Cash on Delivery) Availability', placeholder: 'e.g., Yes/No + extra charges if any' },
-      { label: 'Pre-Order Policy', placeholder: 'e.g., Timeline and payment terms for pre-orders' }
+      { label: 'Order Cancellation Window', placeholder: 'e.g., Orders can be cancelled within 1 hour of placing', type: 'textarea' },
+      { label: 'How to Cancel', placeholder: 'e.g., Via dashboard or email to support', type: 'textarea' },
+      { label: 'Order Modification Policy', placeholder: 'e.g., Address can be changed before dispatch only', type: 'textarea' },
+      { label: 'Out-of-Stock Handling', placeholder: 'e.g., Full refund issued within 3 business days', type: 'textarea' },
+      { label: 'Order Confirmation Method', placeholder: 'e.g., Email + SMS confirmation sent immediately', type: 'textarea' },
+      { label: 'Invoice / Bill Availability', placeholder: 'e.g., Digital invoice sent via email', type: 'textarea' },
+      { label: 'COD (Cash on Delivery) Availability', placeholder: 'e.g., Yes/No + extra charges if any', type: 'textarea' },
+      { label: 'Pre-Order Policy', placeholder: 'e.g., Timeline and payment terms for pre-orders', type: 'textarea' }
     ]
   },
   {
@@ -92,12 +92,12 @@ const STAGES = [
     id: 'customer',
     label: 'Customer Account & Privacy',
     fields: [
-      { label: 'Account Creation Required?', placeholder: 'e.g., Yes (for order tracking) / Guest checkout available' },
-      { label: 'Password Reset Process', placeholder: "e.g., Use 'Forgot Password' on login page" },
-      { label: 'Data Privacy Policy', placeholder: 'e.g., Link to privacy policy page' },
-      { label: 'Account Deletion Process', placeholder: 'e.g., Email support to request account deletion' },
-      { label: 'Newsletter Unsubscribe', placeholder: 'e.g., Click unsubscribe link in any email' },
-      { label: 'Data Sharing Policy', placeholder: 'e.g., We do not sell your data to third parties' }
+      { label: 'Account Creation Required?', placeholder: 'e.g., Yes (for order tracking) / Guest checkout available', type: 'textarea' },
+      { label: 'Password Reset Process', placeholder: "e.g., Use 'Forgot Password' on login page", type: 'textarea' },
+      { label: 'Data Privacy Policy', placeholder: 'e.g., Link to privacy policy page', type: 'textarea' },
+      { label: 'Account Deletion Process', placeholder: 'e.g., Email support to request account deletion', type: 'textarea' },
+      { label: 'Newsletter Unsubscribe', placeholder: 'e.g., Click unsubscribe link in any email', type: 'textarea' },
+      { label: 'Data Sharing Policy', placeholder: 'e.g., We do not sell your data to third parties', type: 'textarea' }
     ]
   },
   {
@@ -116,12 +116,12 @@ const STAGES = [
     id: 'escalation',
     label: 'Support Escalation Rules',
     fields: [
-      { label: 'Customer reports damaged/wrong item', placeholder: 'e.g., 🎫 Always create a ticket' },
-      { label: 'Legal complaints or fraud reports', placeholder: 'e.g., 🎫 Always create a ticket' },
-      { label: 'Refund not received after 10+ days', placeholder: 'e.g., 🎫 Always create a ticket' },
-      { label: 'Question about a specific order not in system', placeholder: 'e.g., 🎫 Always create a ticket' },
-      { label: 'Complaint about a delivery partner', placeholder: 'e.g., 🎫 Always create a ticket' },
-      { label: 'AI confidence is low on any answer', placeholder: "e.g., 🎫 Create a ticket with AI's best attempt as a note" }
+      {
+        label: 'Escalation Rules',
+        placeholder: 'e.g., 🎫 Create a ticket when:\n- Customer reports damaged/wrong item\n- Legal complaints or fraud reports\n- Refund not received after 10+ days\n- Order not found in system\n- AI confidence is low on any answer',
+        type: 'textarea',
+        rows: 10
+      }
     ]
   },
   {
@@ -279,7 +279,7 @@ const KnowledgeBaseTab = ({ tenantId }) => {
                       value={formData[field.label] || ''}
                       onChange={e => handleInputChange(field.label, e.target.value)}
                       placeholder={field.placeholder}
-                      rows={3}
+                      rows={field.rows || 3}
                       className="w-full px-3 py-2 bg-[#f3f4f5] border border-[#e1e3e4] rounded-md text-sm text-[#191c1d] placeholder:text-[#777586] focus:outline-none focus:border-[#4338ca] transition-colors resize-y"
                     />
                   ) : (

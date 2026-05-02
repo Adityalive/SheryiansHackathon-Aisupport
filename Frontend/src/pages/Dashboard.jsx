@@ -29,7 +29,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview': return <OverviewTab />;
-      case 'profile': return <ProfileTab user={user} tenant={tenant} />;
+      case 'profile': return <ProfileTab user={user} tenant={tenant} tenantId={tenantId} />;
       case 'widget': return <WidgetTab tenantId={tenantId} tenantSlug={tenant?.slug} />;
       case 'kb': return <KnowledgeBaseTab tenantId={tenantId} />;
       case 'conversations': return <ConversationsTab tenantId={tenantId} />;
