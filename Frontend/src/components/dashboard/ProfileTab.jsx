@@ -43,11 +43,21 @@ const ProfileTab = ({ user, tenant, tenantId }) => {
 
   // Pull only the Business Profile KB items and build a lookup map
   const profileData = kbItems
-    .filter((item) => PROFILE_FIELDS.includes(item.title))
-    .reduce(
-      (acc, item) => ({ ...acc, [item.title]: item.content || item.answer }),
-      {},
-    );
+    .filter(
+      (item) =>
+        PROFILE_FIELDS.includes(item.title) ||
+        PROFILE_FIELDS.includes(item.question),
+    )
+    .reduce((acc, item) => {
+      const key = PROFILE_FIELDS.includes(item.title)
+        ? item.title
+        : item.question;
+      // kbItems is sorted newest first, so we only set if not already set to avoid overwriting with older items
+      if (!acc[key]) {
+        acc[key] = item.content || item.answer;
+      }
+      return acc;
+    }, {});
 
   return (
     <div className="max-w-3xl space-y-5">
