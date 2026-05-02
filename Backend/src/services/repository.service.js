@@ -111,4 +111,20 @@ export const updateRecord = async (Model, collectionName, id, updates) => {
   return clone(updated);
 };
 
+export const deleteRecord = async (Model, collectionName, id) => {
+  if (isDbReady()) {
+    const deleted = await Model.findByIdAndDelete(id);
+    return !!deleted;
+  }
+
+  const collection = ensureCollection(collectionName);
+  const index = collection.findIndex((doc) => String(doc._id) === String(id));
+  if (index === -1) {
+    return false;
+  }
+
+  collection.splice(index, 1);
+  return true;
+};
+
 export const dumpMemoryStore = () => clone(memoryStore);

@@ -1,5 +1,5 @@
 import { runChatGraph } from '../services/chatGraph.service.js';
-import { getConversationById, listConversationsForTenant } from '../services/conversation.service.js';
+import { getConversationById, listConversationsForTenant, deleteConversation } from '../services/conversation.service.js';
 import { getOrCreateTenant, resolveTenantIdentity } from '../services/tenant.service.js';
 import { listMessagesForConversation } from '../services/message.service.js';
 import {
@@ -165,3 +165,16 @@ export const deleteTenantKnowledgeBaseItem = async (req, res) => {
   }
 };
 
+export const deleteTenantConversation = async (req, res) => {
+  try {
+    const { tenantId, conversationId } = req.params;
+    const tenant = await getOrCreateTenant({ tenantId });
+    const deleted = await deleteConversation(tenant._id, conversationId);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Conversation not found or could not be deleted' });
+    }
+    return res.json({ message: 'Conversation deleted successfully', deleted: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};

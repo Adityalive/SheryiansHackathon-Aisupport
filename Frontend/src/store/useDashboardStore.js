@@ -128,6 +128,20 @@ export const useDashboardStore = create((set, get) => ({
     }
   },
 
+  deleteConversation: async (convId, tenantId) => {
+    try {
+      await supportService.deleteConversation(convId, tenantId);
+      const { selectedConversation } = get();
+      if (selectedConversation?._id === convId) {
+        set({ selectedConversation: null, messages: [] });
+      }
+      get().fetchConversations(tenantId);
+    } catch (e) {
+      console.error('Failed to delete conversation', e);
+      alert('Failed to delete conversation');
+    }
+  },
+
   // Tickets
   tickets: [],
   ticketLoading: false,

@@ -1,6 +1,6 @@
 import Conversation from '../models/ConversationModel.js';
 import mongoose from 'mongoose';
-import { createRecord, findOneRecord, findRecords, updateRecord } from './repository.service.js';
+import { createRecord, findOneRecord, findRecords, updateRecord, deleteRecord } from './repository.service.js';
 
 export const createConversation = async (payload) =>
   createRecord(Conversation, 'Conversation', {
@@ -42,3 +42,9 @@ export const listConversationsForTenant = async (tenantId) =>
 
 export const closeConversation = async (tenantId, conversationId) =>
   updateRecord(Conversation, 'Conversation', conversationId, { tenantId, status: 'closed' });
+
+export const deleteConversation = async (tenantId, conversationId) => {
+  const conv = await getConversationById(tenantId, conversationId);
+  if (!conv) return false;
+  return deleteRecord(Conversation, 'Conversation', conversationId);
+};

@@ -51,6 +51,11 @@ export const supportService = {
     return response.data;
   },
 
+  deleteConversation: async (conversationId, tenantId) => {
+    const response = await api.delete(`/chat/tenants/${tenantId}/conversations/${conversationId}`);
+    return response.data;
+  },
+
   createTicket: async (payload) => {
     const response = await api.post('/voice/tickets', payload);
     return response.data;
