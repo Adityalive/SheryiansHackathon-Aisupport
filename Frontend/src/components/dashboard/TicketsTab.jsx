@@ -1,5 +1,5 @@
 import { useDashboardStore } from '../../store/useDashboardStore';
-import { TicketCheck, MessageCircle, PhoneCall } from 'lucide-react';
+import { TicketCheck, MessageCircle, PhoneCall, Trash2 } from 'lucide-react';
 
 const PRIORITY_STYLES = {
   urgent: 'text-red-600 bg-red-50',
@@ -9,7 +9,7 @@ const PRIORITY_STYLES = {
 };
 
 const TicketsTab = ({ tenantId }) => {
-  const { tickets, ticketLoading, resolveTicket } = useDashboardStore();
+  const { tickets, ticketLoading, resolveTicket, deleteTicket } = useDashboardStore();
 
   if (ticketLoading) {
     return <div className="text-sm text-[#777586] py-4">Loading tickets...</div>;
@@ -50,7 +50,16 @@ const TicketsTab = ({ tenantId }) => {
                         Mark Resolved
                       </button>
                     ) : (
-                      <span className="text-xs text-green-600 font-medium">✔ Resolved</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-green-600 font-medium">✔ Resolved</span>
+                        <button
+                          onClick={() => deleteTicket(ticket._id, tenantId)}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                          title="Remove ticket"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

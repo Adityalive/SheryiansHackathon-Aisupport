@@ -80,3 +80,13 @@ export const listTicketsForTenant = async (tenantId) =>
  */
 export const updateTicketStatus = async (ticketId, status) =>
   Ticket.findByIdAndUpdate(ticketId, { status }, { new: true });
+
+export const deleteTicketService = async (ticketId) => {
+  const ticket = await Ticket.findById(ticketId);
+  if (!ticket) return false;
+  if (ticket.status !== 'resolved') {
+    throw new Error('Only resolved tickets can be deleted');
+  }
+  await Ticket.findByIdAndDelete(ticketId);
+  return true;
+};

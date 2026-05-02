@@ -3,7 +3,7 @@ import { transcribeAudio } from '../services/stt.service.js';
 import { runChatGraph } from '../services/chatGraph.service.js';
 import { buildSpeakTwiML, buildGreetingTwiML, buildEscalationTwiML } from '../services/tts.service.js';
 import { getOrCreateTenant } from '../services/tenant.service.js';
-import { detectEscalation, createTicket, listTicketsForTenant, updateTicketStatus } from '../services/ticket.service.js';
+import { detectEscalation, createTicket, listTicketsForTenant, updateTicketStatus, deleteTicketService } from '../services/ticket.service.js';
 import { listMessagesForConversation } from '../services/message.service.js';
 
 // Multer setup for audio file uploads (stores in memory, not disk)
@@ -157,6 +157,22 @@ export const resolveTicket = async (req, res) => {
     const ticket = await updateTicketStatus(ticketId, status || 'resolved');
     return res.json({ ticket });
   } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteTicketController = async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const deleted = await deleteTicketService(ticketId);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+    return res.json({ message: 'Ticket deleted successfully', deleted: true });
+  } catch (error) {
+    if (error.message === 'Only resolved tickets can be deleted') {
+      return res.status(400).json({ message: error.message });
+    }
     return res.status(500).json({ message: error.message });
   }
 };

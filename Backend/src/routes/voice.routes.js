@@ -7,6 +7,7 @@ import {
   listTickets,
   resolveTicket,
   createTicketController,
+  deleteTicketController,
 } from '../controllers/voice.controller.js';
 
 const router = Router();
@@ -31,5 +32,8 @@ router.post('/tickets', createTicketController);
 
 // PATCH /api/voice/tickets/:ticketId
 router.patch('/tickets/:ticketId', resolveTicket);
+
+// DELETE /api/voice/tickets/:ticketId
+router.delete('/tickets/:ticketId', deleteTicketController);
 
 export default router;

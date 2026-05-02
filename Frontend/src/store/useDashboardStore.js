@@ -167,4 +167,15 @@ export const useDashboardStore = create((set, get) => ({
       console.error('Failed to resolve ticket', e);
     }
   },
+
+  deleteTicket: async (ticketId, tenantId) => {
+    try {
+      if (!window.confirm('Are you sure you want to delete this ticket?')) return;
+      await axios.delete(`${API_BASE}/voice/tickets/${ticketId}`);
+      get().fetchTickets(tenantId);
+    } catch (e) {
+      console.error('Failed to delete ticket', e);
+      alert(e.response?.data?.message || 'Failed to delete ticket');
+    }
+  },
 }));
