@@ -1,36 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { SupportProvider } from './features/support-widget/context/SupportContext';
+import { useAuthStore } from './store/useAuthStore';
+import { useSupportStore } from './features/support-widget/store/useSupportStore';
 import SupportWidget from './features/support-widget/components/SupportWidget';
 
-// Pages & Layout
-import Layout from './components/Layout';
+// Pages
 import Home from './pages/Home';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 
 function App() {
-  // Try to get the tenantId from the logged-in user to initialize the chat for that tenant
-  // In a real app, you might want to dynamically update this if the user logs in/out
-  const currentUser = JSON.parse(localStorage.getItem('user'));
-  const activeTenantId = currentUser?.tenant?._id || currentUser?.tenant?.id || 'default-tenant';
+  const tenant = useAuthStore((s) => s.tenant);
+  const setTenantId = useSupportStore((s) => s.setTenantId);
+
+  // Keep the support widget's tenantId in sync with the logged-in tenant
+  useEffect(() => {
+    const id = tenant?._id || tenant?.id || tenant?.slug || 'default-tenant';
+    setTenantId(id);
+  }, [tenant, setTenantId]);
 
   return (
-    <SupportProvider tenantId={activeTenantId}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<Login />} />
-            <Route path="dashboard" element={<Dashboard />} />
-          </Route>
-        </Routes>
-      </Router>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
 
+      {/* Global floating support widget — no Provider needed */}
       <SupportWidget />
-    </SupportProvider>
+    </Router>
   );
 }
 

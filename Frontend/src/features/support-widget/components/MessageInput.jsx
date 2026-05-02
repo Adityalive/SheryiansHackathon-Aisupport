@@ -1,41 +1,42 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, MicOff, Loader } from 'lucide-react';
-import { useSupport } from '../hooks/useSupport';
+import { useSupportStore } from '../store/useSupportStore';
 import axios from 'axios';
 
 const API_BASE = 'http://localhost:3000/api';
 
 const MessageInput = () => {
   const [text, setText] = useState('');
-  const { sendMessage, isLoading, tenantId, isVoiceMode, toggleVoiceMode } = useSupport();
-
-  // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
-  // ── Handle text submit ──────────────────
+  // Granular selectors — only re-render when these specific values change
+  const sendMessage = useSupportStore((s) => s.sendMessage);
+  const isLoading = useSupportStore((s) => s.isLoading);
+  const isVoiceMode = useSupportStore((s) => s.isVoiceMode);
+  const toggleVoiceMode = useSupportStore((s) => s.toggleVoiceMode);
+
+  // ── Handle text submit ──────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (text.trim() && !isLoading) {
       const msgText = text;
       setText('');
       const reply = await sendMessage(msgText);
-      if (isVoiceMode && reply?.content) {
-        speakText(reply.content);
-      }
+      if (isVoiceMode && reply?.content) speakText(reply.content);
     }
   };
 
-  // ── Speak AI response using browser TTS ──
+  // ── Browser TTS ─────────────────────────────────────
   const speakText = useCallback((text) => {
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel(); // stop any previous speech
+    window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 1.0;
     utter.pitch = 1.0;
-    // Prefer a natural English voice
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(
       (v) => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Alex'))
@@ -44,7 +45,7 @@ const MessageInput = () => {
     window.speechSynthesis.speak(utter);
   }, []);
 
-  // ── Start recording microphone ──────────
+  // ── Start microphone recording ───────────────────────
   const startRecording = async () => {
     if (isLoading || isTranscribing) return;
     try {
@@ -59,30 +60,22 @@ const MessageInput = () => {
       };
 
       recorder.onstop = async () => {
-        // Stop all tracks to release the microphone
         stream.getTracks().forEach((t) => t.stop());
-
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        if (blob.size < 1000) return; // Too small, probably silence
+        if (blob.size < 1000) return;
 
         setIsTranscribing(true);
         try {
-          // Send audio to backend → Groq Whisper → get text
           const formData = new FormData();
           formData.append('audio', blob, 'recording.webm');
-
           const { data } = await axios.post(`${API_BASE}/voice/transcribe`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-
           const transcript = data?.transcript?.trim();
           if (transcript) {
             setText(transcript);
-            // Auto-send and auto-speak reply
             const reply = await sendMessage(transcript);
-            if (reply?.content) {
-              speakText(reply.content);
-            }
+            if (reply?.content) speakText(reply.content);
           }
         } catch (err) {
           console.error('Transcription failed:', err.message);
@@ -94,7 +87,6 @@ const MessageInput = () => {
       recorder.start();
       setIsRecording(true);
 
-      // Speak greeting only if it's the first time activating voice mode
       if (!isVoiceMode) {
         speakText("Hey! I'm listening. How can I help you today?");
         toggleVoiceMode(true);
@@ -105,7 +97,7 @@ const MessageInput = () => {
     }
   };
 
-  // ── Stop recording ──────────────────────
+  // ── Stop recording ───────────────────────────────────
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
@@ -113,13 +105,7 @@ const MessageInput = () => {
     }
   };
 
-  const handleMicClick = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
+  const handleMicClick = () => (isRecording ? stopRecording() : startRecording());
 
   const isBusy = isLoading || isTranscribing;
 

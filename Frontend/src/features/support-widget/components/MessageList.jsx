@@ -1,16 +1,13 @@
 import React, { useRef, useEffect } from 'react';
-import { useSupport } from '../hooks/useSupport';
+import { useSupportStore } from '../store/useSupportStore';
 
 const MessageList = () => {
-  const { messages, isLoading } = useSupport();
+  const messages = useSupportStore((s) => s.messages);
+  const isLoading = useSupportStore((s) => s.isLoading);
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
   return (
