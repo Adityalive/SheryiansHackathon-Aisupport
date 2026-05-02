@@ -3,15 +3,23 @@ import { Copy, Check } from 'lucide-react';
 
 const WidgetTab = ({ tenantId, tenantSlug }) => {
   const [copied, setCopied] = useState(false);
+  const [snippetCopied, setSnippetCopied] = useState(false);
 
-  const webhookSnippet = `<SupportProvider tenantId="${tenantId}">
-  {/* Your app */}
-</SupportProvider>`;
+  const scriptSnippet = `<script
+  src="http://localhost:3000/public/widget.js"
+  data-business-id="${tenantId || 'default-tenant'}">
+</script>`;
 
   const copy = (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copySnippet = () => {
+    navigator.clipboard.writeText(scriptSnippet);
+    setSnippetCopied(true);
+    setTimeout(() => setSnippetCopied(false), 2000);
   };
 
   return (
@@ -36,11 +44,20 @@ const WidgetTab = ({ tenantId, tenantSlug }) => {
 
         <div>
           <label className="block text-xs font-medium text-[#464554] uppercase tracking-wide mb-2">Embed Snippet</label>
-          <div className="bg-[#191c1d] text-[#c3c0ff] rounded-md p-4 font-mono text-xs leading-relaxed whitespace-pre">
-            {webhookSnippet}
+          <div className="relative group">
+            <div className="bg-[#191c1d] text-[#c3c0ff] rounded-md p-4 font-mono text-xs leading-relaxed whitespace-pre overflow-x-auto">
+              {scriptSnippet}
+            </div>
+            <button
+              onClick={copySnippet}
+              className="absolute top-3 right-3 p-1.5 bg-[#30363d] hover:bg-[#4338ca] text-[#e1e3e4] hover:text-white rounded transition-colors"
+              title="Copy snippet"
+            >
+              {snippetCopied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+            </button>
           </div>
           <p className="text-xs text-[#777586] mt-2">
-            Pass this Tenant ID to your <code className="bg-[#f3f4f5] px-1 rounded">SupportProvider</code> component.
+            Paste this anywhere in the <code className="bg-[#f3f4f5] px-1 rounded">&lt;body&gt;</code> tag of your website.
           </p>
         </div>
       </div>
