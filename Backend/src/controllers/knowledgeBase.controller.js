@@ -4,7 +4,8 @@ import {
   getKnowledgeBaseItem,
   deleteKnowledgeBaseItem,
 } from '../services/knowledgeBase.service.js';
-import pdf from 'pdf-parse';
+// pdf-parse is imported lazily inside handleUploadDocument to avoid its
+// broken startup test that crashes the server at module-load time.
 
 export const handleCreateKnowledgeItem = async (req, res) => {
   try {
@@ -41,6 +42,7 @@ export const handleUploadDocument = async (req, res) => {
 
     let text = '';
     if (req.file.mimetype === 'application/pdf') {
+      const { default: pdf } = await import('pdf-parse');
       const data = await pdf(req.file.buffer);
       text = data.text;
     } else {
