@@ -3,6 +3,7 @@ import { getOrCreateConversation } from './conversation.service.js';
 import { createMessage, listMessagesForConversation } from './message.service.js';
 import { buildKnowledgeSummary, retrieveKnowledgeBaseContext } from './knowledgeBase.service.js';
 import { createTicket, findActiveTicketForConversation } from './ticket.service.js';
+import { generateAssistantReply } from './groq.service.js';
 
 const createSessionId = (input = {}) =>
   String(input.sessionId || input.conversationId || input.customerEmail || input.customerName || `session-${Date.now()}`)
@@ -10,17 +11,6 @@ const createSessionId = (input = {}) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-
-const shortenReply = (text = '', maxWords = 24) => {
-  const cleaned = String(text || '').trim().replace(/\s+/g, ' ');
-  if (!cleaned) return cleaned;
-
-  const sentences = cleaned.split(/(?<=[.!?])\s+/);
-  const firstSentence = sentences[0] || cleaned;
-  const words = firstSentence.split(/\s+/);
-  if (words.length <= maxWords) return firstSentence;
-  return `${words.slice(0, maxWords).join(' ')}...`;
-};
 
 export const runChatGraph = async ({
   tenantInput,
@@ -52,24 +42,21 @@ export const runChatGraph = async ({
   });
 
   const history = await listMessagesForConversation(tenant._id, conversation._id);
-  const knowledgeMatches = await retrieveKnowledgeBaseContext(tenant._id, message, 3);
-  const knowledgeSummary = buildKnowledgeSummary(knowledgeMatches);
-  const bestMatch = knowledgeMatches[0];
-  const shouldAnswerDirectly =
-    bestMatch &&
-    bestMatch.type === 'faq' &&
-    Boolean(bestMatch.answer) &&
-    bestMatch.score >= 1.25;
+  
+  // RAG: Retrieve relevant knowledge items using embeddings + keywords
+  const knowledgeMatches = await retrieveKnowledgeBaseContext(tenant._id, message, 4);
+  
+  // AI-powered reply generation using the knowledge context
+  const assistantReply = await generateAssistantReply({
+    tenant,
+    message,
+    history,
+    knowledge: knowledgeMatches
+  });
 
-  const assistantReply = shouldAnswerDirectly
-    ? shortenReply(bestMatch.answer)
-    : 'I do not have that in the knowledge base.';
-
-  const needsAutoEscalation = !shouldAnswerDirectly;
+  const needsAutoEscalation = assistantReply.includes('I am sorry, I do not have specific information');
 
   let autoTicket = null;
-  let finalAssistantReply = assistantReply;
-
   if (needsAutoEscalation) {
     const existingTicket = await findActiveTicketForConversation(tenant._id, conversation._id);
     if (!existingTicket) {
@@ -89,15 +76,13 @@ export const runChatGraph = async ({
         },
       });
     }
-
-    finalAssistantReply = 'I do not have that in the knowledge base.';
   }
 
   const assistantMessage = await createMessage({
     tenantId: tenant._id,
     conversationId: conversation._id,
     role: 'assistant',
-    content: shortenReply(finalAssistantReply),
+    content: assistantReply,
     metadata: {
       knowledgeMatches: knowledgeMatches.map((item) => item.id),
       autoEscalated: needsAutoEscalation,
