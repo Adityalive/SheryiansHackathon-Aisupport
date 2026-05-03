@@ -6,8 +6,9 @@ const WidgetTab = ({ tenantId }) => {
   const [snippetCopied, setSnippetCopied] = useState(false);
 
   const scriptSnippet = `<script
-  src="http://localhost:3000/public/widget.js"
-  data-business-id="${tenantId || 'default-tenant'}">
+  src="https://your-backend-domain.com/public/widget.js"
+  data-business-id="${tenantId || 'default-tenant'}"
+  data-api-base="https://your-backend-domain.com/api">
 </script>`;
 
   const copy = (text) => {
@@ -65,7 +66,7 @@ const WidgetTab = ({ tenantId }) => {
                     <ShieldCheck size={16} className="text-[#0369a1]" />
                   </div>
                   <p className="text-xs text-[#0369a1] leading-relaxed">
-                    <strong>Placement:</strong> Paste this script right before the closing <code>&lt;/body&gt;</code> tag on your website. It works with React, Vue, Webflow, and plain HTML.
+                    <strong>Placement:</strong> Paste this script right before the closing <code>&lt;/body&gt;</code> tag on your website. If you load it inside an iframe, make sure the iframe allows <code>microphone</code> and the site is served over HTTPS.
                   </p>
                 </div>
               </div>

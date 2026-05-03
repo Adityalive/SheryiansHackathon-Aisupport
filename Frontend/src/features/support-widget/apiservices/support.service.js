@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { getSupportWidgetApiBase } from '../config';
 
 // Create an axios instance with the base URL for the backend
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // Adjust if your backend runs on a different port
+  baseURL: getSupportWidgetApiBase(),
   headers: {
     'Content-Type': 'application/json',
   },

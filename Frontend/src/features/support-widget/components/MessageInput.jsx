@@ -2,8 +2,9 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Send, Mic, MicOff, Loader } from 'lucide-react';
 import { useSupportStore } from '../store/useSupportStore';
 import axios from 'axios';
+import { getSupportWidgetApiBase } from '../config';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = getSupportWidgetApiBase();
 
 const MessageInput = () => {
   const [text, setText] = useState('');
@@ -49,6 +50,11 @@ const MessageInput = () => {
   const startRecording = async () => {
     if (isLoading || isTranscribing) return;
     try {
+      if (!window.isSecureContext) {
+        alert('Microphone access requires HTTPS or localhost.');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
 
