@@ -88,124 +88,158 @@ const OverviewTab = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Area chart - takes 2 cols */}
-        <div className="xl:col-span-2 bg-white border border-[#e1e3e4] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#191c1d] mb-1">
-            Conversation Trends
-          </h3>
-          <p className="text-xs text-[#777586] mb-4">
-            Daily volume for the last 7 days
-          </p>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={trends}>
-              <defs>
-                <linearGradient id="colorChats" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4338ca" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#4338ca" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+        <div className="xl:col-span-2 bg-white border border-[#e1e3e4] rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-sm font-bold text-[#191c1d]">Conversation Trends</h3>
+              <p className="text-xs text-[#777586]">Daily volume for the last 7 days</p>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#4338ca]" />
+                <span className="text-[10px] font-bold text-[#464554] uppercase tracking-wider">Total Chats</span>
+              </div>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid
-                strokeDasharray="3 3"
+                strokeDasharray="4 4"
                 vertical={false}
-                stroke="#f3f4f5"
+                stroke="#f1f5f9"
               />
               <XAxis
                 dataKey="date"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#777586", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 500 }}
+                dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#777586", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 500 }}
               />
               <Tooltip
-                contentStyle={{
-                  borderRadius: "6px",
-                  border: "1px solid #e1e3e4",
-                  boxShadow: "none",
-                  fontSize: 12,
+                cursor={{ fill: '#f1f5f9', radius: 4 }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-[#191c1d] text-white p-3 rounded-lg shadow-xl border border-white/10 text-xs">
+                        <p className="font-bold mb-1">{payload[0].payload.date}</p>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#818cf8]" />
+                          <span>Total Volume: <span className="font-bold">{payload[0].value}</span></span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
-              <Area
-                type="monotone"
-                dataKey="chats"
-                stroke="#4338ca"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorChats)"
+              <Bar 
+                dataKey="chats" 
+                fill="#4338ca" 
+                radius={[4, 4, 0, 0]} 
+                barSize={32}
+                animationDuration={1500}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Pie chart */}
-        <div className="bg-white border border-[#e1e3e4] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#191c1d] mb-1">
-            Channel Distribution
-          </h3>
-          <p className="text-xs text-[#777586] mb-4">Calls vs Chat volume</p>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={distribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={75}
-                paddingAngle={4}
-                dataKey="value"
-              >
-                {distribution.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ fontSize: 12 }} />
-              <Legend
-                verticalAlign="bottom"
-                height={30}
-                iconSize={10}
-                wrapperStyle={{ fontSize: 11 }}
+        {/* Distribution chart */}
+        <div className="bg-white border border-[#e1e3e4] rounded-2xl p-6 shadow-sm">
+          <h3 className="text-sm font-bold text-[#191c1d] mb-1">Channel Distribution</h3>
+          <p className="text-xs text-[#777586] mb-6">Calls vs Chat volume</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={distribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600, textTransform: 'uppercase' }} 
               />
-            </PieChart>
+              <YAxis axisLine={false} tickLine={false} hide />
+              <Tooltip
+                cursor={{ fill: '#f1f5f9', radius: 8 }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-[#191c1d] text-white p-2 rounded-lg shadow-xl border border-white/10 text-[10px]">
+                        <span className="font-bold">{payload[0].payload.name}: </span>
+                        <span>{payload[0].value} conversations</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar 
+                dataKey="value" 
+                radius={[8, 8, 0, 0]} 
+                barSize={40}
+              >
+                {distribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={index === 0 ? "#4338ca" : "#6366f1"} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
+          <div className="flex items-center justify-center gap-6 mt-4">
+             <div className="flex items-center gap-2">
+               <div className="w-3 h-3 rounded-sm bg-[#4338ca]" />
+               <span className="text-[10px] font-bold text-[#464554]">CHAT</span>
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-3 h-3 rounded-sm bg-[#6366f1]" />
+               <span className="text-[10px] font-bold text-[#464554]">PHONE</span>
+             </div>
+          </div>
         </div>
       </div>
 
       {/* Top questions */}
-      <div className="bg-white border border-[#e1e3e4] rounded-lg p-5">
-        <h3 className="text-sm font-semibold text-[#191c1d] mb-1">
-          Top Customer Inquiries
-        </h3>
-        <p className="text-xs text-[#777586] mb-4">
-          Most common topics discussed
-        </p>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart layout="vertical" data={topQuestions} margin={{ left: 30 }}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              horizontal={false}
-              stroke="#f3f4f5"
-            />
+      <div className="bg-white border border-[#e1e3e4] rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-sm font-bold text-[#191c1d]">Top Customer Inquiries</h3>
+            <p className="text-xs text-[#777586]">Most common topics discussed</p>
+          </div>
+          <button className="text-[10px] font-bold text-[#4338ca] uppercase tracking-wider bg-[#eef2ff] px-2 py-1 rounded">View Detailed Report</button>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart layout="vertical" data={topQuestions} margin={{ left: 20, right: 20 }}>
             <XAxis type="number" hide />
             <YAxis
               dataKey="name"
               type="category"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#464554", fontSize: 11 }}
+              tick={{ fill: "#464554", fontSize: 11, fontWeight: 500 }}
+              width={100}
             />
             <Tooltip
-              contentStyle={{ fontSize: 12 }}
-              cursor={{ fill: "#f3f4f5" }}
+              cursor={{ fill: "transparent" }}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-[#191c1d] text-white px-2 py-1 rounded text-[10px] font-bold">
+                      {payload[0].value} mentions
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Bar
               dataKey="value"
               fill="#6366f1"
-              radius={[0, 4, 4, 0]}
-              barSize={16}
+              radius={[0, 10, 10, 0]}
+              barSize={12}
+              background={{ fill: '#f8f9fa', radius: 10 }}
             />
           </BarChart>
         </ResponsiveContainer>

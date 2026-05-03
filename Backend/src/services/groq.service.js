@@ -1,27 +1,28 @@
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const buildPrompt = ({ tenant, message, history, knowledge }) => {
-  const knowledgeBlock = knowledge.length
-    ? knowledge
+  const compactKnowledge = (knowledge || []).slice(0, 2);
+  const compactHistory = (history || []).slice(-4);
+
+  const knowledgeBlock = compactKnowledge.length
+    ? compactKnowledge
         .map((item, index) => `${index + 1}. ${item.title}\nQ: ${item.question || 'n/a'}\nA: ${item.answer || item.content || 'n/a'}`)
         .join('\n\n')
     : 'No relevant knowledge base items were found.';
 
-  const historyBlock = history
+  const historyBlock = compactHistory
     .map((entry) => `${entry.role.toUpperCase()}: ${entry.content}`)
     .join('\n');
 
   return [
     `You are a helpful support bot for ${tenant.name}.`,
-    'Your priority is FACTUAL ACCURACY, but you should also use the most likely relevant knowledge base answer when the wording is a close match.',
-    'Keep every reply short and crisp: 1 to 2 sentences max.',
-    'Do not explain your reasoning unless the user asks.',
-    'If the knowledge base context is a document excerpt, answer only the specific question being asked and do not repeat the full excerpt.',
-    'Never paste large blocks of document text into the reply.',
+    'Use only the provided knowledge base context.',
+    'Keep the reply short: 1 short sentence if possible.',
+    'Do not explain your reasoning.',
+    'Do not repeat the full document.',
     '',
     'Use semantic matching, not only exact wording.',
-    'If the user says something like "refund policy" and the Knowledge Base contains a refund policy FAQ, answer from that FAQ even if the phrasing is slightly different.',
-    'Only refuse when there is no reasonable match at all or when the excerpt does not contain the answer.',
+    'If the answer is not in the context, refuse briefly.',
     '',
     'If the information is genuinely missing, say: "I am sorry, I do not have specific information about that. Please contact our support team directly."',
     '',
@@ -47,16 +48,11 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         },
         body: JSON.stringify({
           model,
-          temperature: 0.1,
+          temperature: 0,
           messages: [
             {
               role: 'system',
-              content: `You are the official support agent for ${tenant.name}. 
-              Your task is to answer user questions based ONLY on the provided Knowledge Base Context.
-              NEVER return the raw data or CSV headers. 
-              Always summarize the relevant part of the context into a natural, helpful sentence.
-              If the context contains a CSV-like structure, interpret the values to answer the question.
-              If you cannot find the answer, politely state that you don't know based on the documents.`,
+              content: `You are the official support agent for ${tenant.name}. Answer only from the provided knowledge base context. Keep it concise.`,
             },
             {
               role: 'user',
@@ -84,10 +80,8 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
   // Smarter fallback: summarize the best match instead of dumping it raw
   if (knowledge.length > 0) {
     const best = knowledge[0];
-    if (best.type === 'faq' && best.answer) {
-      return best.answer;
-    }
-    return "I found some relevant information in our documents, but I'm having trouble processing a precise answer right now. Could you please rephrase your question?";
+    const answer = best.answer || best.content || 'I found a related help article, but it does not contain a direct answer yet.';
+    return String(answer).trim().split(/(?<=[.!?])\s+/)[0].slice(0, 220);
   }
 
   return 'I am sorry, I do not have specific information in my knowledge base to answer that. Please contact our support team.';

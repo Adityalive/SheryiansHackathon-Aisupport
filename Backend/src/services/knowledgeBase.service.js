@@ -178,14 +178,28 @@ export const createKnowledgeBaseItem = async (tenantId, payload) => {
 };
 
 export const listKnowledgeBaseItems = async (tenantId) =>
-  findRecords(KnowledgeBaseItem, 'KnowledgeBaseItem', { tenantId }, { sort: { createdAt: -1 } });
+  findRecords(KnowledgeBaseItem, 'KnowledgeBaseItem', { tenantId, status: 'active' }, { sort: { createdAt: -1 } });
 
 export const getKnowledgeBaseItem = async (tenantId, itemId) =>
-  mongoose.isValidObjectId(itemId) ? findOneRecord(KnowledgeBaseItem, 'KnowledgeBaseItem', { tenantId, _id: itemId }) : null;
+  mongoose.isValidObjectId(itemId)
+    ? findOneRecord(KnowledgeBaseItem, 'KnowledgeBaseItem', { tenantId, _id: itemId, status: 'active' })
+    : null;
 
 export const deleteKnowledgeBaseItem = async (tenantId, itemId) => {
   if (!mongoose.isValidObjectId(itemId)) return null;
-  return KnowledgeBaseItem.findOneAndDelete({ tenantId, _id: itemId });
+  return KnowledgeBaseItem.findOneAndUpdate(
+    { tenantId, _id: itemId },
+    {
+      status: 'archived',
+      answer: '',
+      content: '',
+      chunks: [],
+      metadata: {
+        archivedAt: new Date(),
+      },
+    },
+    { returnDocument: 'after' }
+  );
 };
 
 export const seedKnowledgeBase = async (tenantId, items = []) => {

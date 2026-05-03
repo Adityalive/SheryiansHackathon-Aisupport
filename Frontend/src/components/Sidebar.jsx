@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { id: "conversations", label: "Conversations", icon: MessageCircle },
   { id: "tickets", label: "Support Tickets", icon: TicketCheck },
   { id: "kb", label: "Knowledge Base", icon: Database },
-  // { id: 'voice', label: 'Voice', icon: PhoneCall },
+  { id: 'voice', label: 'Voice AI', icon: PhoneCall },
 ];
 
 const Sidebar = ({ tenantName }) => {
