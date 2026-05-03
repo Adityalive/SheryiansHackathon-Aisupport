@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { createUserAccount, findUserByTenantAndEmail, findUserByEmail } from '../services/user.service.js';
 import { createTenant, getTenantById, resolveExistingTenant } from '../services/tenant.service.js';
 
-const AUTH_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const getAuthSecret = () => process.env.JWT_SECRET || 'your-secret-key';
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 
@@ -18,7 +18,7 @@ const verifyPassword = async (password, storedPassword) => {
 
 const generateToken = (payload) => {
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = crypto.createHmac('sha256', AUTH_SECRET).update(body).digest('base64url');
+  const signature = crypto.createHmac('sha256', getAuthSecret()).update(body).digest('base64url');
   return `${body}.${signature}`;
 };
 

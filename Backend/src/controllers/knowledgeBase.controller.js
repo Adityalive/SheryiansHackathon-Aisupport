@@ -49,6 +49,42 @@ export const handleUploadDocument = async (req, res) => {
       text = req.file.buffer.toString('utf-8');
     }
 
+    // Smart CSV Handling
+    if (req.file.mimetype === 'text/csv' || req.file.originalname.endsWith('.csv')) {
+      const rows = text.split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
+      if (rows.length > 1) {
+        const headers = rows[0].toLowerCase().split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
+        const qIndex = headers.findIndex((h) => h === 'prompt' || h === 'question' || h === 'q');
+        const aIndex = headers.findIndex((h) => h === 'response' || h === 'answer' || h === 'a');
+
+        if (qIndex !== -1 && aIndex !== -1) {
+          const results = [];
+          for (let i = 1; i < rows.length; i++) {
+            // Regex to split by comma but ignore commas inside quotes
+            const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            const question = (cols[qIndex] || '').replace(/^"|"$/g, '').trim();
+            const answer = (cols[aIndex] || '').replace(/^"|"$/g, '').trim();
+
+            if (question && answer) {
+              const item = await createKnowledgeBaseItem(req.user.tenantId, {
+                type: 'faq',
+                title: question.substring(0, 60),
+                question,
+                answer,
+                content: answer,
+                tags: ['csv_import'],
+              });
+              results.push(item);
+            }
+          }
+          return res.status(201).json({
+            message: `Successfully imported ${results.length} items from CSV`,
+            count: results.length,
+          });
+        }
+      }
+    }
+
     const payload = {
       type: 'document',
       title: req.file.originalname,

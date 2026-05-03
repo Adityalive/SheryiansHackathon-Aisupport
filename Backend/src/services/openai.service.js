@@ -16,6 +16,8 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     'Answer using the most likely knowledge base match when the wording is close, even if it is not an exact phrase match.',
     'Be practical rather than overly strict. Do not reject a FAQ just because the user phrased it a little differently.',
     'Keep every reply short and crisp: 1 to 2 sentences max.',
+    'If the knowledge base context is a document excerpt, answer only the specific question and do not repeat the excerpt.',
+    'Never paste large blocks of document text into the reply.',
     'If the answer is not covered at all, say you need a support agent in one short sentence.',
     '',
     `Knowledge base context:\n${knowledgeBlock}`,
@@ -69,7 +71,7 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
   if (knowledge.length > 0) {
     const best = knowledge[0];
     const answer = best.answer || best.content || 'I found a related help article, but it does not contain a direct answer yet.';
-    return answer;
+    return String(answer).trim().split(/(?<=[.!?])\s+/)[0].slice(0, 240);
   }
 
   return 'I do not have enough information yet. Please contact support.';

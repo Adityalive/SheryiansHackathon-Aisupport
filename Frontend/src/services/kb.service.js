@@ -3,8 +3,14 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000/api/knowledge';
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  try {
+    const authStorage = localStorage.getItem('auth-storage');
+    if (!authStorage) return {};
+    const { state } = JSON.parse(authStorage);
+    return state.token ? { Authorization: `Bearer ${state.token}` } : {};
+  } catch (e) {
+    return {};
+  }
 };
 
 export const kbService = {
