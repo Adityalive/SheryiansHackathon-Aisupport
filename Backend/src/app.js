@@ -7,6 +7,7 @@ import chatRoutes from './routes/chat.routes.js';
 import tenantRoutes from './routes/tenant.routes.js';
 import voiceRoutes from './routes/voice.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import knowledgeBaseRoutes from './routes/knowledgeBase.routes.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/voice', voiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/knowledge', knowledgeBaseRoutes);
 
 connectDB();
 

@@ -1,6 +1,43 @@
 import KnowledgeBaseItem from '../models/KnowledgeBaseModel.js';
 import mongoose from 'mongoose';
 import { createRecord, findOneRecord, findRecords } from './repository.service.js';
+import { getEmbedding, getEmbeddings } from './gemini.service.js';
+
+const cosineSimilarity = (vecA, vecB) => {
+  let dotProduct = 0;
+  let mA = 0;
+  let mB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    mA += vecA[i] * vecA[i];
+    mB += vecB[i] * vecB[i];
+  }
+  mA = Math.sqrt(mA);
+  mB = Math.sqrt(mB);
+  if (mA === 0 || mB === 0) return 0;
+  return dotProduct / (mA * mB);
+};
+
+const chunkText = (text, maxLength = 800, overlap = 100) => {
+  if (!text) return [];
+  const chunks = [];
+  let start = 0;
+  while (start < text.length) {
+    let end = start + maxLength;
+    if (end < text.length) {
+      // Try to find a sentence end or space to avoid cutting in the middle
+      const lastSpace = text.lastIndexOf(' ', end);
+      if (lastSpace > start + maxLength / 2) {
+        end = lastSpace;
+      }
+    }
+    chunks.push(text.slice(start, end).trim());
+    start = end - overlap;
+    if (start < 0) start = 0;
+    if (end >= text.length) break;
+  }
+  return chunks.filter(c => c.length > 10);
+};
 
 const tokenize = (input) =>
   String(input || '')
@@ -10,34 +47,14 @@ const tokenize = (input) =>
     .filter((word) => word.length > 2);
 
 const STOPWORDS = new Set([
-  'the',
-  'and',
-  'for',
-  'you',
-  'your',
-  'with',
-  'this',
-  'that',
-  'from',
-  'are',
-  'was',
-  'can',
-  'how',
-  'what',
-  'when',
-  'where',
-  'why',
-  'who',
-  'please',
+  'the', 'and', 'for', 'you', 'your', 'with', 'this', 'that', 'from', 'are', 'was', 'can', 'how', 'what', 'when', 'where', 'why', 'who', 'please',
 ]);
 
 const cleanTokens = (input) => tokenize(input).filter((word) => !STOPWORDS.has(word));
 
 const tokenMatches = (queryToken, candidateToken) => {
   if (!queryToken || !candidateToken) return false;
-
   if (queryToken === candidateToken) return true;
-
   const minPrefix = Math.min(4, queryToken.length, candidateToken.length);
   if (minPrefix >= 4) {
     return (
@@ -45,7 +62,6 @@ const tokenMatches = (queryToken, candidateToken) => {
       candidateToken.startsWith(queryToken.slice(0, minPrefix))
     );
   }
-
   return queryToken.startsWith(candidateToken) || candidateToken.startsWith(queryToken);
 };
 
@@ -74,19 +90,50 @@ const scoreKnowledgeItem = (item, message) => {
   return score;
 };
 
-export const createKnowledgeBaseItem = async (tenantId, payload) =>
-  createRecord(KnowledgeBaseItem, 'KnowledgeBaseItem', {
+export const createKnowledgeBaseItem = async (tenantId, payload) => {
+  const title = payload.title;
+  const question = payload.question || '';
+  const answer = payload.answer || '';
+  const content = payload.content || payload.answer || '';
+  
+  // Generate chunks if not provided
+  let chunksData = payload.chunks || [];
+  if (chunksData.length === 0) {
+    const textToChunk = `${title}\n${question}\n${content}`;
+    const textChunks = chunkText(textToChunk);
+    
+    // Generate embeddings for chunks
+    if (textChunks.length > 0) {
+      try {
+        const embeddings = await getEmbeddings(textChunks);
+        chunksData = textChunks.map((text, i) => ({
+          chunkText: text,
+          chunkOrder: i,
+          embedding: embeddings[i]
+        }));
+      } catch (error) {
+        console.warn('Embedding generation failed during creation:', error.message);
+        chunksData = textChunks.map((text, i) => ({
+          chunkText: text,
+          chunkOrder: i
+        }));
+      }
+    }
+  }
+
+  return createRecord(KnowledgeBaseItem, 'KnowledgeBaseItem', {
     tenantId,
     type: payload.type || 'faq',
-    title: payload.title,
-    question: payload.question || '',
-    answer: payload.answer || '',
-    content: payload.content || payload.answer || '',
+    title,
+    question,
+    answer,
+    content,
     tags: Array.isArray(payload.tags) ? payload.tags : [],
-    chunks: Array.isArray(payload.chunks) ? payload.chunks : [],
+    chunks: chunksData,
     status: payload.status || 'active',
     metadata: payload.metadata || {},
   });
+};
 
 export const listKnowledgeBaseItems = async (tenantId) =>
   findRecords(KnowledgeBaseItem, 'KnowledgeBaseItem', { tenantId }, { sort: { createdAt: -1 } });
@@ -101,39 +148,63 @@ export const deleteKnowledgeBaseItem = async (tenantId, itemId) => {
 
 export const seedKnowledgeBase = async (tenantId, items = []) => {
   const created = [];
-
   for (const item of items) {
     created.push(await createKnowledgeBaseItem(tenantId, item));
   }
-
   return created;
 };
 
-export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 3) => {
+export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 4) => {
   const items = await listKnowledgeBaseItems(tenantId);
-  const ranked = items
-    .map((item) => ({
-      item,
-      score: scoreKnowledgeItem(item, message),
-    }))
-    .filter((entry) => {
-      // Keep the threshold low enough for short FAQ-style questions while
-      // still filtering out accidental one-word matches.
-      return entry.score >= 1;
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+  let messageEmbedding = null;
+  
+  try {
+    messageEmbedding = await getEmbedding(message);
+  } catch (error) {
+    console.warn('Embedding retrieval failed during search:', error.message);
+  }
 
-  return ranked.map(({ item, score }) => ({
-    id: item._id,
-    type: item.type,
-    title: item.title,
-    question: item.question,
-    answer: item.answer,
-    content: item.content,
-    tags: item.tags || [],
-    score,
-  }));
+  const matches = [];
+
+  for (const item of items) {
+    let bestChunkScore = 0;
+    let bestChunkText = '';
+
+    if (messageEmbedding && item.chunks && item.chunks.length > 0) {
+      for (const chunk of item.chunks) {
+        if (chunk.embedding) {
+          const sim = cosineSimilarity(messageEmbedding, chunk.embedding);
+          if (sim > bestChunkScore) {
+            bestChunkScore = sim;
+            bestChunkText = chunk.chunkText;
+          }
+        }
+      }
+    }
+
+    // Keyword score as a weight/tie-breaker
+    const keywordScore = scoreKnowledgeItem(item, message);
+    
+    // Normalize and combine scores
+    // bestChunkScore is typically 0.6 - 0.9 for good matches
+    // keywordScore can be anywhere from 0 to 10+
+    const combinedScore = (bestChunkScore * 10) + keywordScore;
+
+    if (combinedScore > 1.5) {
+      matches.push({
+        id: item._id,
+        type: item.type,
+        title: item.title,
+        question: item.question,
+        answer: item.answer,
+        content: bestChunkText || item.content || item.answer,
+        tags: item.tags || [],
+        score: combinedScore,
+      });
+    }
+  }
+
+  return matches.sort((a, b) => b.score - a.score).slice(0, limit);
 };
 
 export const buildKnowledgeSummary = (matches = []) =>
@@ -141,8 +212,8 @@ export const buildKnowledgeSummary = (matches = []) =>
     .map((match, index) => {
       const lines = [`[${index + 1}] ${match.title}`];
       if (match.question) lines.push(`Q: ${match.question}`);
-      if (match.answer) lines.push(`A: ${match.answer}`);
-      if (!match.answer && match.content) lines.push(`Content: ${match.content}`);
+      if (match.answer && match.type === 'faq') lines.push(`A: ${match.answer}`);
+      if (match.content) lines.push(`Context: ${match.content}`);
       return lines.join('\n');
     })
     .join('\n\n');

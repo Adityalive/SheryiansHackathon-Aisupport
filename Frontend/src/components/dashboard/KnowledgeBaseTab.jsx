@@ -20,10 +20,8 @@ const KnowledgeBaseTab = ({ tenantId }) => {
   } = useDashboardStore();
 
   useEffect(() => {
-    if (tenantId) {
-      fetchKbItems(tenantId);
-    }
-  }, [tenantId, fetchKbItems]);
+    fetchKbItems();
+  }, [fetchKbItems]);
 
   const updateFaqField = (field, value) => {
     setFaqForm({ ...faqForm, [field]: value });
@@ -35,19 +33,24 @@ const KnowledgeBaseTab = ({ tenantId }) => {
 
   const handleFaqSubmit = async (e) => {
     e.preventDefault();
-    if (!tenantId) return;
-    await addFaq(tenantId);
+    await addFaq();
   };
 
   const handleDocSubmit = async (e) => {
     e.preventDefault();
-    if (!tenantId) return;
-    await addDocument(tenantId);
+    await addDocument();
   };
 
   const handleFileUpload = async (file) => {
     if (!file) return;
 
+    // Handle PDF directly via backend upload
+    if (file.type === "application/pdf") {
+      await addDocument(file);
+      return;
+    }
+
+    // For text files, we can still read and preview
     try {
       const text = await file.text();
       setPdfForm({
@@ -317,7 +320,7 @@ const KnowledgeBaseTab = ({ tenantId }) => {
                 </div>
 
                 <button
-                  onClick={() => deleteKbItem(tenantId, item._id)}
+                  onClick={() => deleteKbItem(item._id)}
                   className="p-2 text-[#777586] hover:text-[#ba1a1a] hover:bg-[#ffdad6] rounded transition-colors flex-shrink-0"
                   title="Delete item"
                 >

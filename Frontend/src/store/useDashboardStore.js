@@ -37,10 +37,10 @@ export const useDashboardStore = create((set, get) => ({
   formStatus: { loading: false, error: null, success: null },
   setFormStatus: (status) => set({ formStatus: status }),
 
-  fetchKbItems: async (tenantId) => {
+  fetchKbItems: async () => {
     set({ kbLoading: true });
     try {
-      const data = await kbService.getKnowledgeBaseItems(tenantId);
+      const data = await kbService.getKnowledgeBaseItems();
       set({ kbItems: data.items || [] });
     } catch (e) {
       console.error('Failed to fetch KB items', e);
@@ -49,11 +49,11 @@ export const useDashboardStore = create((set, get) => ({
     }
   },
 
-  addFaq: async (tenantId) => {
+  addFaq: async () => {
     const { faqForm, fetchKbItems } = get();
     set({ formStatus: { loading: true, error: null, success: null } });
     try {
-      await kbService.addKnowledgeBaseItem(tenantId, {
+      await kbService.addKnowledgeBaseItem({
         type: 'faq',
         title: faqForm.title,
         question: faqForm.question,
@@ -65,27 +65,31 @@ export const useDashboardStore = create((set, get) => ({
         formStatus: { loading: false, error: null, success: 'FAQ added successfully!' },
         faqForm: { title: '', question: '', answer: '', tags: '' },
       });
-      fetchKbItems(tenantId);
+      fetchKbItems();
     } catch (err) {
       set({ formStatus: { loading: false, error: err.response?.data?.message || 'Failed to add FAQ', success: null } });
     }
   },
 
-  addDocument: async (tenantId) => {
+  addDocument: async (file = null) => {
     const { pdfForm, fetchKbItems } = get();
     set({ formStatus: { loading: true, error: null, success: null } });
     try {
-      await kbService.addKnowledgeBaseItem(tenantId, {
-        type: 'document',
-        title: pdfForm.title,
-        content: pdfForm.content,
-        tags: pdfForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
-      });
+      if (file) {
+        await kbService.uploadDocument(file);
+      } else {
+        await kbService.addKnowledgeBaseItem({
+          type: 'document',
+          title: pdfForm.title,
+          content: pdfForm.content,
+          tags: pdfForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        });
+      }
       set({
         formStatus: { loading: false, error: null, success: 'Document added successfully!' },
         pdfForm: { title: '', content: '', tags: '' },
       });
-      fetchKbItems(tenantId);
+      fetchKbItems();
     } catch (err) {
       set({ formStatus: { loading: false, error: err.response?.data?.message || 'Failed to add document', success: null } });
     }
@@ -107,11 +111,11 @@ export const useDashboardStore = create((set, get) => ({
 
           await Promise.all(
             existingItems.map((item) =>
-              kbService.deleteKnowledgeBaseItem(tenantId, item._id),
+              kbService.deleteKnowledgeBaseItem(item._id),
             ),
           );
 
-          await kbService.addKnowledgeBaseItem(tenantId, {
+          await kbService.addKnowledgeBaseItem({
             type: 'faq',
             title: label,
             question: label,
@@ -129,7 +133,7 @@ export const useDashboardStore = create((set, get) => ({
           success: 'Business profile saved successfully!',
         },
       });
-      get().fetchKbItems(tenantId);
+      get().fetchKbItems();
     } catch (err) {
       set({
         formStatus: {
@@ -141,10 +145,10 @@ export const useDashboardStore = create((set, get) => ({
     }
   },
 
-  deleteKbItem: async (tenantId, itemId) => {
+  deleteKbItem: async (itemId) => {
     try {
-      await kbService.deleteKnowledgeBaseItem(tenantId, itemId);
-      get().fetchKbItems(tenantId);
+      await kbService.deleteKnowledgeBaseItem(itemId);
+      get().fetchKbItems();
     } catch {
       alert('Failed to delete item');
     }
