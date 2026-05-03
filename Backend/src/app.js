@@ -51,9 +51,11 @@ const frontendDistPath = path.resolve(__dirname, '..', '..', 'Frontend', 'dist')
 // Serve Frontend static files
 app.use(express.static(frontendDistPath));
 
-// Catch-all for SPA: Serve index.html for any non-API route
-app.get('*', (req, res, next) => {
+// Catch-all for SPA: Serve index.html for any non-API GET route
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
   if (req.path.startsWith('/api')) return next();
+
   res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
     if (err) {
       // Fallback for debugging if build folder is missing
