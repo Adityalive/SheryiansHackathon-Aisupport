@@ -12,6 +12,16 @@ const createSessionId = (input = {}) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+const shortenReply = (text = '', maxChars = 220) => {
+  const cleaned = String(text || '').trim().replace(/\s+/g, ' ');
+  if (!cleaned) return cleaned;
+
+  const firstSentence = cleaned.split(/(?<=[.!?])\s+/)[0] || cleaned;
+  return firstSentence.length > maxChars
+    ? `${firstSentence.slice(0, maxChars).trim()}...`
+    : firstSentence;
+};
+
 export const runChatGraph = async ({
   tenantInput,
   message,
@@ -53,8 +63,9 @@ export const runChatGraph = async ({
     history,
     knowledge: knowledgeMatches
   });
+  const finalReply = shortenReply(assistantReply);
 
-  const needsAutoEscalation = assistantReply.includes('I am sorry, I do not have specific information');
+  const needsAutoEscalation = finalReply.includes('I am sorry, I do not have specific information');
 
   let autoTicket = null;
   if (needsAutoEscalation) {
@@ -82,7 +93,7 @@ export const runChatGraph = async ({
     tenantId: tenant._id,
     conversationId: conversation._id,
     role: 'assistant',
-    content: assistantReply,
+    content: finalReply,
     metadata: {
       knowledgeMatches: knowledgeMatches.map((item) => item.id),
       autoEscalated: needsAutoEscalation,

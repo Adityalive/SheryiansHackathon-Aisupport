@@ -84,16 +84,11 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
   // Smarter fallback: summarize the best match instead of dumping it raw
   if (knowledge.length > 0) {
     const best = knowledge[0];
-<<<<<<< HEAD
     if (best.type === 'faq' && best.answer) {
       return best.answer;
     }
     return "I found some relevant information in our documents, but I'm having trouble processing a precise answer right now. Could you please rephrase your question?";
-=======
-    const answer = best.answer || best.content || 'I found a related help article, but it does not contain a direct answer yet.';
-    return String(answer).trim().split(/(?<=[.!?])\s+/)[0].slice(0, 240);
->>>>>>> update
   }
 
-  return 'I am sorry, I do not have enough information in my knowledge base to answer that. Please contact our support team.';
+  return 'I am sorry, I do not have specific information in my knowledge base to answer that. Please contact our support team.';
 };

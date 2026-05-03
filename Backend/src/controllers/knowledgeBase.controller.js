@@ -4,14 +4,8 @@ import {
   getKnowledgeBaseItem,
   deleteKnowledgeBaseItem,
 } from '../services/knowledgeBase.service.js';
-<<<<<<< HEAD
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
-=======
 // pdf-parse is imported lazily inside handleUploadDocument to avoid its
 // broken startup test that crashes the server at module-load time.
->>>>>>> update
 
 export const handleCreateKnowledgeItem = async (req, res) => {
   try {
