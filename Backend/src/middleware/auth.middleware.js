@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const AUTH_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const getAuthSecret = () => process.env.JWT_SECRET || 'your-secret-key';
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -16,7 +16,7 @@ export const authMiddleware = (req, res, next) => {
     }
 
     const expectedSignature = crypto
-      .createHmac('sha256', AUTH_SECRET)
+      .createHmac('sha256', getAuthSecret())
       .update(bodyB64)
       .digest('base64url');
 

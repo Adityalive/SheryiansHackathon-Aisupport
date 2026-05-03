@@ -45,11 +45,16 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         },
         body: JSON.stringify({
           model,
-          temperature: 0, // Keep replies stable and reduce unnecessary variation
+          temperature: 0.1,
           messages: [
             {
               role: 'system',
-              content: `You are the official support agent for ${tenant.name}. Use the most likely matching FAQ answer when the knowledge base is a close semantic match. Be accurate, but do not be overly strict about wording.`,
+              content: `You are the official support agent for ${tenant.name}. 
+              Your task is to answer user questions based ONLY on the provided Knowledge Base Context.
+              NEVER return the raw data or CSV headers. 
+              Always summarize the relevant part of the context into a natural, helpful sentence.
+              If the context contains a CSV-like structure, interpret the values to answer the question.
+              If you cannot find the answer, politely state that you don't know based on the documents.`,
             },
             {
               role: 'user',
@@ -67,19 +72,21 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         }
       } else {
         const errorData = await response.json();
-        console.error('Groq API Error:', errorData);
+        console.error('Groq API Error Details:', JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
-      console.warn(`Groq request failed: ${error.message}`);
+      console.error(`Groq request failed critically: ${error.message}`);
     }
   }
 
-  // Fallback to knowledge base if API fails or key is missing
+  // Smarter fallback: summarize the best match instead of dumping it raw
   if (knowledge.length > 0) {
     const best = knowledge[0];
-    const answer = best.answer || best.content || 'I found a related help article, but it does not contain a direct answer yet.';
-    return answer;
+    if (best.type === 'faq' && best.answer) {
+      return best.answer;
+    }
+    return "I found some relevant information in our documents, but I'm having trouble processing a precise answer right now. Could you please rephrase your question?";
   }
 
-  return 'I do not have enough information yet. Please contact support.';
+  return 'I am sorry, I do not have enough information in my knowledge base to answer that. Please contact our support team.';
 };
