@@ -21,6 +21,9 @@ export const authMiddleware = (req, res, next) => {
       .digest('base64url');
 
     if (signature !== expectedSignature) {
+      console.error('Auth Error: Token signature mismatch.');
+      console.error('Expected:', expectedSignature);
+      console.error('Received:', signature);
       return res.status(401).json({ message: 'Invalid token signature' });
     }
 

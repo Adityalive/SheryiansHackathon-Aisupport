@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
-import { Loader2, Zap, Copy, CheckCircle } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
   const signup = useAuthStore((s) => s.signup);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', tenantName: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successData, setSuccessData] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,8 +18,8 @@ const Signup = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await signup(formData);
-      setSuccessData(response.tenant);
+      await signup(formData);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred during signup');
     } finally {
@@ -29,47 +27,6 @@ const Signup = () => {
     }
   };
 
-  const copySlug = () => {
-    navigator.clipboard.writeText(successData.slug);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  if (successData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4">
-        <div className="bg-white border border-[#e1e3e4] rounded-lg p-8 max-w-md w-full text-center">
-          <div className="w-14 h-14 bg-[#eef2ff] rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={28} className="text-[#4338ca]" />
-          </div>
-          <h2 className="text-xl font-semibold text-[#191c1d] mb-2">Registration Successful!</h2>
-          <p className="text-sm text-[#777586] mb-6">Welcome, {formData.name}! Your business account is ready.</p>
-
-          <div className="bg-[#f3f4f5] border border-[#e1e3e4] rounded-md p-4 mb-3">
-            <p className="text-xs font-medium text-[#464554] mb-2 uppercase tracking-wide">Your Business ID (Tenant Slug)</p>
-            <div className="flex items-center justify-between gap-2">
-              <code className="text-[#4338ca] font-medium text-sm">{successData.slug}</code>
-              <button
-                onClick={copySlug}
-                className="p-1.5 hover:bg-[#e1e3e4] rounded transition-colors text-[#464554]"
-                title="Copy to clipboard"
-              >
-                {copied ? <CheckCircle size={16} className="text-green-600" /> : <Copy size={16} />}
-              </button>
-            </div>
-          </div>
-          <p className="text-xs text-[#ba1a1a] mb-6">⚠ Save this ID. You and your team will need it to log in.</p>
-
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full py-2.5 px-4 bg-[#4338ca] hover:bg-[#3730a3] text-white text-sm font-medium rounded-md transition-colors"
-          >
-            Go to Dashboard →
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex">
@@ -119,23 +76,7 @@ const Signup = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#464554] mb-1.5" htmlFor="tenantName">
-                Business Name
-              </label>
-              <input
-                id="tenantName"
-                name="tenantName"
-                type="text"
-                required
-                placeholder="e.g. Acme Corp"
-                value={formData.tenantName}
-                onChange={handleChange}
-                className="w-full px-3 py-2.5 bg-[#f3f4f5] border border-[#e1e3e4] rounded-md text-sm text-[#191c1d] placeholder:text-[#777586] focus:outline-none focus:border-[#4338ca] transition-colors"
-              />
-            </div>
-
-            <div>
+<div>
               <label className="block text-sm font-medium text-[#464554] mb-1.5" htmlFor="name">
                 Your Name (Admin)
               </label>

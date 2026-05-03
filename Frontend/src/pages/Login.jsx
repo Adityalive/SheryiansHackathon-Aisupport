@@ -6,7 +6,7 @@ import { Loader2, Zap } from 'lucide-react';
 const Login = () => {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const [formData, setFormData] = useState({ email: '', password: '', tenantSlug: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -21,7 +21,7 @@ const Login = () => {
       await login(formData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials or Business ID');
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
@@ -82,23 +82,7 @@ const Login = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#464554] mb-1.5" htmlFor="tenantSlug">
-                Business ID
-              </label>
-              <input
-                id="tenantSlug"
-                name="tenantSlug"
-                type="text"
-                required
-                placeholder="e.g. acme-corp"
-                value={formData.tenantSlug}
-                onChange={handleChange}
-                className="w-full px-3 py-2.5 bg-[#f3f4f5] border border-[#e1e3e4] rounded-md text-sm text-[#191c1d] placeholder:text-[#777586] focus:outline-none focus:border-[#4338ca] transition-colors"
-              />
-            </div>
-
-            <div>
+<div>
               <label className="block text-sm font-medium text-[#464554] mb-1.5" htmlFor="email">
                 Email Address
               </label>

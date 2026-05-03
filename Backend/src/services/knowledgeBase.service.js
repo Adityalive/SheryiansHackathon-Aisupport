@@ -39,6 +39,48 @@ const chunkText = (text, maxLength = 800, overlap = 100) => {
   return chunks.filter(c => c.length > 10);
 };
 
+const splitSentences = (text) =>
+  String(text || '')
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length > 0);
+
+const extractRelevantSnippet = (text, message, maxSentences = 2, maxChars = 320) => {
+  const sentences = splitSentences(text);
+  if (sentences.length === 0) return String(text || '').trim().slice(0, maxChars);
+
+  const queryTokens = cleanTokens(message);
+  if (queryTokens.length === 0) {
+    return sentences.slice(0, maxSentences).join(' ').slice(0, maxChars);
+  }
+
+  const scored = sentences.map((sentence, index) => {
+    const sentenceTokens = new Set(cleanTokens(sentence));
+    let score = 0;
+    for (const token of queryTokens) {
+      for (const candidate of sentenceTokens) {
+        if (tokenMatches(token, candidate)) {
+          score += token.length >= 5 ? 1.5 : 1;
+          break;
+        }
+      }
+    }
+    return { sentence, score, index };
+  });
+
+  const best = scored
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, maxSentences)
+    .sort((a, b) => a.index - b.index)
+    .map((entry) => entry.sentence)
+    .join(' ');
+
+  const snippet = best || sentences.slice(0, maxSentences).join(' ');
+  return snippet.slice(0, maxChars).trim();
+};
+
 const tokenize = (input) =>
   String(input || '')
     .toLowerCase()
@@ -100,7 +142,7 @@ export const createKnowledgeBaseItem = async (tenantId, payload) => {
   let chunksData = payload.chunks || [];
   if (chunksData.length === 0) {
     const textToChunk = `${title}\n${question}\n${content}`;
-    const textChunks = chunkText(textToChunk);
+    const textChunks = chunkText(textToChunk, 420, 60);
     
     // Generate embeddings for chunks
     if (textChunks.length > 0) {
@@ -191,13 +233,19 @@ export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 4)
     const combinedScore = (bestChunkScore * 10) + keywordScore;
 
     if (combinedScore > 1.5) {
+      const rawContent = bestChunkText || item.content || item.answer || '';
+      const focusedContent =
+        item.type === 'document'
+          ? extractRelevantSnippet(rawContent, message)
+          : rawContent;
+
       matches.push({
         id: item._id,
         type: item.type,
         title: item.title,
         question: item.question,
         answer: item.answer,
-        content: bestChunkText || item.content || item.answer,
+        content: focusedContent,
         tags: item.tags || [],
         score: combinedScore,
       });
@@ -213,7 +261,7 @@ export const buildKnowledgeSummary = (matches = []) =>
       const lines = [`[${index + 1}] ${match.title}`];
       if (match.question) lines.push(`Q: ${match.question}`);
       if (match.answer && match.type === 'faq') lines.push(`A: ${match.answer}`);
-      if (match.content) lines.push(`Context: ${match.content}`);
+      if (match.content) lines.push(`Relevant excerpt: ${match.content}`);
       return lines.join('\n');
     })
     .join('\n\n');

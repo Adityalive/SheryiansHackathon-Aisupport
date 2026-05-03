@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { createUserAccount, findUserByTenantAndEmail } from '../services/user.service.js';
-import { createTenant, resolveExistingTenant } from '../services/tenant.service.js';
+import { createUserAccount, findUserByTenantAndEmail, findUserByEmail } from '../services/user.service.js';
+import { createTenant, getTenantById, resolveExistingTenant } from '../services/tenant.service.js';
 
 const getAuthSecret = () => process.env.JWT_SECRET || 'your-secret-key';
 
@@ -41,13 +41,12 @@ export const businessSignup = async (req, res) => {
       return res.status(400).json({ message: 'name, email, and password are required' });
     }
 
-    if (!String(tenantName || '').trim()) {
-      return res.status(400).json({ message: 'tenantName is required' });
-    }
+    // tenantName is optional — fall back to the user's name
+    const resolvedTenantName = String(tenantName || name || '').trim();
 
     const createdTenant = await createTenant({
-      name: tenantName,
-      slug: tenantSlug || tenantName,
+      name: resolvedTenantName,
+      slug: tenantSlug || resolvedTenantName,
       settings,
     });
 
@@ -138,14 +137,29 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'email and password are required' });
     }
 
-    const tenant = await resolveExistingTenant({ tenantId, tenantSlug });
-    if (!tenant) {
-      return res.status(404).json({ message: 'Selected tenant not found' });
+    let user, tenant;
+
+    // If tenantId/tenantSlug provided, scope the lookup to that tenant
+    if (tenantId || tenantSlug) {
+      tenant = await resolveExistingTenant({ tenantId, tenantSlug });
+      if (!tenant) {
+        return res.status(404).json({ message: 'Tenant not found' });
+      }
+      user = await findUserByTenantAndEmail(tenant._id, email);
+    } else {
+      // No tenant provided — find by email across all tenants
+      user = await findUserByEmail(email);
+      if (user) {
+        tenant = await getTenantById(user.tenant);
+      }
     }
 
-    const user = await findUserByTenantAndEmail(tenant._id, email);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    if (!tenant) {
+      return res.status(400).json({ message: 'Associated tenant not found' });
     }
 
     if (!await verifyPassword(password, user.password)) {

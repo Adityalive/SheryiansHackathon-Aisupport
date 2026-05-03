@@ -16,3 +16,7 @@ export const findUserByTenantAndEmail = async (tenantId, email) =>
   });
 
 export const findUsersByTenant = async (tenantId) => findRecords(UserModel, 'User', { tenant: tenantId }, { sort: { createdAt: -1 } });
+
+// Login without tenant — find by email only (returns first match)
+export const findUserByEmail = async (email) =>
+  findOneRecord(UserModel, 'User', { email: normalizeEmail(email) });
