@@ -56,19 +56,32 @@ const Sidebar = ({ tenantName }) => {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-2 overflow-y-auto">
+      <nav className="flex-1 py-4 overflow-y-auto space-y-1">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors text-left ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-300 text-left relative group overflow-hidden ${
               activeTab === id
-                ? "bg-[#eef2ff] text-[#4338ca] font-medium"
-                : "text-[#464554] hover:bg-[#f3f4f5]"
+                ? "bg-indigo-50/80 text-[#4338ca] font-bold"
+                : "text-[#464554] hover:text-[#4338ca] hover:bg-slate-50"
             }`}
           >
-            <Icon size={16} className="flex-shrink-0" />
-            <span className="truncate">{label}</span>
+            {/* Active/Hover Accent Bar */}
+            <div 
+              className={`absolute left-0 top-0 bottom-0 w-1 bg-[#4338ca] transition-transform duration-300 rounded-r-full ${
+                activeTab === id ? "translate-x-0" : "-translate-x-full group-hover:translate-x-0"
+              }`}
+            />
+
+            <div className={`transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${activeTab === id ? "scale-110" : ""}`}>
+              <Icon size={18} className="flex-shrink-0" />
+            </div>
+
+            <span className="truncate relative z-10">{label}</span>
+            
+            {/* Subtle light effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/0 to-indigo-500/0 group-hover:from-indigo-500/[0.03] transition-all duration-500" />
           </button>
         ))}
       </nav>
