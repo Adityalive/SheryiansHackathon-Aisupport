@@ -34,7 +34,7 @@ const Sidebar = ({ tenantName }) => {
   };
 
   return (
-    <aside className="w-56 bg-white border-r border-[#e1e3e4] flex flex-col flex-shrink-0">
+    <aside className="w-56 h-full bg-white border-r border-[#e1e3e4] flex flex-col flex-shrink-0">
       {/* Logo */}
       <div className="h-14 flex items-center gap-2 px-4 border-b border-[#e1e3e4]">
         <div className="w-7 h-7 bg-[#4338ca] rounded-md flex items-center justify-center flex-shrink-0">
