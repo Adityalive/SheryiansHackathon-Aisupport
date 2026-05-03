@@ -63,9 +63,9 @@ const OverviewTab = () => {
   const { overview, distribution, trends, topQuestions } = stats;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Metric cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         <MetricCard
           icon={MessageSquare}
           label="Total Conversations"
@@ -88,7 +88,7 @@ const OverviewTab = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         {/* Area chart - takes 2 cols */}
         <div className="xl:col-span-2 bg-white border border-[#e1e3e4] rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">

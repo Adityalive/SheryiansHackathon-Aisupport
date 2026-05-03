@@ -127,16 +127,16 @@ const VoiceTab = () => {
       </div>
 
       {/* Embedded Web Widget Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-white rounded-3xl p-10 border border-[#e1e3e4] shadow-sm">
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center bg-white rounded-3xl p-6 md:p-10 border border-[#e1e3e4] shadow-sm">
+        <div className="space-y-4 md:space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider">
             <Monitor size={14} />
             Web Integration
           </div>
-          <h2 className="text-3xl font-bold text-[#191c1d] leading-tight">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#191c1d] leading-tight">
             Talk directly from your <span className="text-[#4338ca]">Website</span>
           </h2>
-          <p className="text-[#777586] leading-relaxed">
+          <p className="text-sm md:text-base text-[#777586] leading-relaxed">
             Your customers don't need to dial a phone number. Our voice assistant is built directly into the web chat widget. They can simply hold the microphone icon to speak their questions and get instant spoken replies.
           </p>
           <ul className="space-y-3">
@@ -155,8 +155,8 @@ const VoiceTab = () => {
         </div>
 
         {/* Widget Visual Replica */}
-        <div className="flex justify-center">
-          <div className="w-[350px] bg-[#f8f9fa] rounded-2xl overflow-hidden shadow-2xl border border-[#e1e3e4] flex flex-col h-[450px]">
+        <div className="flex justify-center w-full overflow-hidden">
+          <div className="w-full max-w-[350px] bg-[#f8f9fa] rounded-2xl overflow-hidden shadow-2xl border border-[#e1e3e4] flex flex-col h-[400px] md:h-[450px]">
             {/* Widget Header */}
             <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-4 flex flex-col justify-between h-[100px]">
               <div className="flex justify-end gap-2">
@@ -168,14 +168,14 @@ const VoiceTab = () => {
                  </div>
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg">AI Support</h3>
-                <p className="text-white/80 text-xs">We typically reply in minutes</p>
+                <h3 className="text-white font-bold text-base md:text-lg">AI Support</h3>
+                <p className="text-white/80 text-[10px] md:text-xs">We typically reply in minutes</p>
               </div>
             </div>
 
             {/* Widget Body */}
             <div className="flex-1 bg-white flex items-center justify-center p-6">
-              <p className="text-center text-[#464554] text-lg font-medium">Hi there! How can we help you today?</p>
+              <p className="text-center text-[#464554] text-base md:text-lg font-medium px-4">Hi there! How can we help you today?</p>
             </div>
 
             {/* Widget Input */}
@@ -183,13 +183,12 @@ const VoiceTab = () => {
               <div className="bg-[#f3f4f5] rounded-full flex items-center px-4 py-2 gap-2">
                 <input 
                   type="text" 
-                  placeholder="Type or hold mic to speak..." 
-                  className="bg-transparent outline-none flex-1 text-sm text-[#464554] placeholder-[#777586]"
+                  placeholder="Type or speak..." 
+                  className="bg-transparent outline-none flex-1 text-xs md:text-sm text-[#464554] placeholder-[#777586]"
                   disabled
                 />
                 <button className="p-1.5 text-[#777586] hover:text-[#4338ca] transition-colors relative group">
                   <Mic size={18} />
-                  {/* Ripple effect to highlight mic */}
                   <span className="absolute inset-0 rounded-full border-2 border-[#4338ca] scale-150 opacity-0 group-hover:animate-ping" />
                 </button>
                 <button className="w-8 h-8 bg-[#cbd5e1] rounded-full flex items-center justify-center text-white ml-1">
