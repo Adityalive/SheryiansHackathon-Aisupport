@@ -76,7 +76,7 @@ export const useDashboardStore = create((set, get) => ({
     set({ formStatus: { loading: true, error: null, success: null } });
     try {
       await kbService.addKnowledgeBaseItem(tenantId, {
-        type: 'pdf',
+        type: 'document',
         title: pdfForm.title,
         content: pdfForm.content,
         tags: pdfForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
@@ -88,6 +88,56 @@ export const useDashboardStore = create((set, get) => ({
       fetchKbItems(tenantId);
     } catch (err) {
       set({ formStatus: { loading: false, error: err.response?.data?.message || 'Failed to add document', success: null } });
+    }
+  },
+
+  saveBusinessProfile: async (tenantId, profileFields) => {
+    set({ formStatus: { loading: true, error: null, success: null } });
+    try {
+      const entries = Object.entries(profileFields || {}).filter(([, value]) =>
+        String(value || '').trim(),
+      );
+
+      await Promise.all(
+        entries.map(async ([label, value]) => {
+          const currentItems = get().kbItems || [];
+          const existingItems = currentItems.filter(
+            (item) => item.title === label || item.question === label,
+          );
+
+          await Promise.all(
+            existingItems.map((item) =>
+              kbService.deleteKnowledgeBaseItem(tenantId, item._id),
+            ),
+          );
+
+          await kbService.addKnowledgeBaseItem(tenantId, {
+            type: 'faq',
+            title: label,
+            question: label,
+            answer: value,
+            content: value,
+            tags: ['business_profile'],
+          });
+        }),
+      );
+
+      set({
+        formStatus: {
+          loading: false,
+          error: null,
+          success: 'Business profile saved successfully!',
+        },
+      });
+      get().fetchKbItems(tenantId);
+    } catch (err) {
+      set({
+        formStatus: {
+          loading: false,
+          error: err.response?.data?.message || 'Failed to save business profile',
+          success: null,
+        },
+      });
     }
   },
 

@@ -12,16 +12,16 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     .join('\n');
 
   return [
-    `You are a highly precise support bot for ${tenant.name}.`,
-    'Your priority is FACTUAL ACCURACY. Do not provide information that is not explicitly in the Knowledge Base.',
+    `You are a helpful support bot for ${tenant.name}.`,
+    'Your priority is FACTUAL ACCURACY, but you should also use the most likely relevant knowledge base answer when the wording is a close match.',
+    'Keep every reply short and crisp: 1 to 2 sentences max.',
+    'Do not explain your reasoning unless the user asks.',
     '',
-    'CRITICAL INSTRUCTION:',
-    'Verify if the Knowledge Base actually answers the SPECIFIC intent of the question.',
-    '- If the user asks for PRICE but the context only mentions TIME, say you do not know the price.',
-    '- If the user asks for LOCATION but the context only mentions HOURS, say you do not know the location.',
-    '- NEVER substitute one piece of information for another (e.g., do not give a delivery time when asked about a return cost).',
+    'Use semantic matching, not only exact wording.',
+    'If the user says something like "refund policy" and the Knowledge Base contains a refund policy FAQ, answer from that FAQ even if the phrasing is slightly different.',
+    'Only refuse when there is no reasonable match at all or when the question clearly asks for a different topic.',
     '',
-    'If the information is missing or only partially matches, say: "I am sorry, I do not have specific information about that. Please contact our support team directly."',
+    'If the information is genuinely missing, say: "I am sorry, I do not have specific information about that. Please contact our support team directly."',
     '',
     `Knowledge Base Context:\n${knowledgeBlock}`,
     '',
@@ -45,11 +45,11 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         },
         body: JSON.stringify({
           model,
-          temperature: 0.1, // Lower temperature for more factual accuracy
+          temperature: 0, // Keep replies stable and reduce unnecessary variation
           messages: [
             {
               role: 'system',
-              content: `You are the official support agent for ${tenant.name}. You must never give information that is not in the Knowledge Base. Accuracy is more important than being helpful.`,
+              content: `You are the official support agent for ${tenant.name}. Use the most likely matching FAQ answer when the knowledge base is a close semantic match. Be accurate, but do not be overly strict about wording.`,
             },
             {
               role: 'user',
@@ -81,5 +81,5 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
     return answer;
   }
 
-  return 'I do not have enough information yet. Could you share a little more detail so I can help accurately?';
+  return 'I do not have enough information yet. Please contact support.';
 };

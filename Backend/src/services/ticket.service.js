@@ -69,6 +69,13 @@ export const createTicket = async ({
   return ticket;
 };
 
+export const findActiveTicketForConversation = async (tenantId, conversationId) =>
+  Ticket.findOne({
+    tenantId,
+    conversationId,
+    status: { $in: ['open', 'in_progress'] },
+  }).sort({ createdAt: -1 });
+
 /**
  * List all tickets for a tenant.
  */

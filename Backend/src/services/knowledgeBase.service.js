@@ -33,15 +33,32 @@ const STOPWORDS = new Set([
 
 const cleanTokens = (input) => tokenize(input).filter((word) => !STOPWORDS.has(word));
 
+const tokenMatches = (queryToken, candidateToken) => {
+  if (!queryToken || !candidateToken) return false;
+
+  if (queryToken === candidateToken) return true;
+
+  const minPrefix = Math.min(4, queryToken.length, candidateToken.length);
+  if (minPrefix >= 4) {
+    return (
+      queryToken.startsWith(candidateToken.slice(0, minPrefix)) ||
+      candidateToken.startsWith(queryToken.slice(0, minPrefix))
+    );
+  }
+
+  return queryToken.startsWith(candidateToken) || candidateToken.startsWith(queryToken);
+};
+
 const scoreKnowledgeItem = (item, message) => {
-  const messageTokens = new Set(cleanTokens(message));
+  const messageTokens = [...new Set(cleanTokens(message))];
   const fields = [item.title, item.question, item.answer, item.content, ...(item.tags || [])];
-  const tokens = new Set(cleanTokens(fields.join(' ')));
+  const tokens = [...new Set(cleanTokens(fields.join(' ')))];
   let score = 0;
 
-  for (const token of messageTokens) {
-    if (tokens.has(token)) {
-      score += 1;
+  for (const queryToken of messageTokens) {
+    const matched = tokens.some((candidateToken) => tokenMatches(queryToken, candidateToken));
+    if (matched) {
+      score += queryToken.length >= 5 ? 1.5 : 1;
     }
   }
 
@@ -100,9 +117,9 @@ export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 3)
       score: scoreKnowledgeItem(item, message),
     }))
     .filter((entry) => {
-      // Require at least a score of 1.5 (or 2 if we use weighted scoring)
-      // to avoid matching on single common words.
-      return entry.score >= 1.5;
+      // Keep the threshold low enough for short FAQ-style questions while
+      // still filtering out accidental one-word matches.
+      return entry.score >= 1;
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);

@@ -13,8 +13,10 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
 
   return [
     `You are a tenant-scoped support assistant for ${tenant.name}.`,
-    'Answer using only the knowledge base context when possible.',
-    'If the answer is not fully covered, ask one concise clarifying question or say you need a support agent in a calm, helpful tone.',
+    'Answer using the most likely knowledge base match when the wording is close, even if it is not an exact phrase match.',
+    'Be practical rather than overly strict. Do not reject a FAQ just because the user phrased it a little differently.',
+    'Keep every reply short and crisp: 1 to 2 sentences max.',
+    'If the answer is not covered at all, say you need a support agent in one short sentence.',
     '',
     `Knowledge base context:\n${knowledgeBlock}`,
     '',
@@ -38,11 +40,11 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         },
         body: JSON.stringify({
           model,
-          temperature: 0.2,
+          temperature: 0,
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful customer support assistant. Keep answers short, accurate, and tenant-specific.',
+              content: 'You are a helpful customer support assistant. Prefer the most likely FAQ answer for near-matches, and keep answers short, accurate, and tenant-specific.',
             },
             {
               role: 'user',
@@ -70,5 +72,5 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
     return answer;
   }
 
-  return 'I do not have enough information yet. Could you share a little more detail so I can help accurately?';
+  return 'I do not have enough information yet. Please contact support.';
 };
