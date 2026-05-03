@@ -72,30 +72,6 @@ export const runChatGraph = async ({
   });
   const finalReply = shortenReply(assistantReply);
 
-  const needsAutoEscalation = finalReply.includes('I am sorry, I do not have specific information');
-
-  let autoTicket = null;
-  if (needsAutoEscalation) {
-    const existingTicket = await findActiveTicketForConversation(tenant._id, conversation._id);
-    if (!existingTicket) {
-      autoTicket = await createTicket({
-        tenantId: tenant._id,
-        conversationId: String(conversation._id),
-        channel,
-        customerName: customerName || 'Unknown',
-        customerPhone: metadata.customerPhone || '',
-        customerEmail: customerEmail || '',
-        transcript: recentHistory.map((entry) => `${entry.role}: ${entry.content}`).join('\n'),
-        escalationReason: `Automatic escalation for unsupported KB question: ${message}`,
-        metadata: {
-          ...metadata,
-          autoEscalated: true,
-          knowledgeMatches: knowledgeMatches.map((item) => item.id),
-        },
-      });
-    }
-  }
-
   const assistantMessage = await createMessage({
     tenantId: tenant._id,
     conversationId: conversation._id,
@@ -103,8 +79,6 @@ export const runChatGraph = async ({
     content: finalReply,
     metadata: {
       knowledgeMatches: knowledgeMatches.map((item) => item.id),
-      autoEscalated: needsAutoEscalation,
-      ticketId: autoTicket?._id || null,
     },
   });
 
@@ -113,7 +87,7 @@ export const runChatGraph = async ({
     conversation,
     assistantMessage,
     knowledgeMatches,
-    autoEscalated: needsAutoEscalation,
-    autoTicket,
+    autoEscalated: false,
+    autoTicket: null,
   };
 };
