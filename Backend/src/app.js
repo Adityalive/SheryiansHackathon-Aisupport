@@ -28,26 +28,16 @@ const corsMiddleware = (req, res, next) => {
 app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static assets from Backend/public
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
-app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'AI Support backend is running',
-    endpoints: {
-      chat: '/api/chat/message',
-      auth: '/api/auth/login',
-      conversations: '/api/chat/conversations/:conversationId',
-      tenants: '/api/tenants',
-      widget: '/public/chat-widget.html',
-    },
-  });
-});
-
+// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// API Routes
 app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
@@ -55,15 +45,21 @@ app.use('/api/voice', voiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/knowledge', knowledgeBaseRoutes);
 
-// Serve static files from the Frontend/dist directory in production
-const frontendDistPath = path.join(__dirname, '..', '..', 'Frontend', 'dist');
+// --- PRODUCTION SERVING ---
+const frontendDistPath = path.resolve(__dirname, '..', '..', 'Frontend', 'dist');
+
+// Serve Frontend static files
 app.use(express.static(frontendDistPath));
 
-// For any non-API GET routes, serve the frontend app
-app.use((req, res, next) => {
-  if (req.method !== 'GET') return next();
+// Catch-all for SPA: Serve index.html for any non-API route
+app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
-  return res.sendFile(path.join(frontendDistPath, 'index.html'));
+  res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
+    if (err) {
+      // Fallback for debugging if build folder is missing
+      res.status(404).send('Frontend build not found. Please run "npm run build" in the Frontend directory.');
+    }
+  });
 });
 
 connectDB();
