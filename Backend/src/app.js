@@ -55,6 +55,15 @@ app.use('/api/voice', voiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/knowledge', knowledgeBaseRoutes);
 
+// Serve static files from the Frontend/dist directory in production
+const frontendDistPath = path.join(__dirname, '..', '..', 'Frontend', 'dist');
+app.use(express.static(frontendDistPath));
+
+// For any routes not handled by the API, serve the index.html from the frontend build
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
 connectDB();
 
 export default app;

@@ -1,4 +1,10 @@
 {
+  "name": "support-ai-fullstack",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd Frontend && npm install && npm run build && cd ../Backend && npm install",
+    "start": "cd Backend && node server.js"
+  },
   "dependencies": {
     "framer-motion": "^12.38.0"
   }
