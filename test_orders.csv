@@ -1,0 +1,11 @@
+orderId,customerName,items,status,carrier,eta
+1001,Rahul Sharma,Black Midi Dress (M),shipped,Delhivery,May 5 2025
+1002,Priya Singh,White Linen Top (S),processing,,May 7 2025
+1003,Amit Verma,Cream Palazzo Pants (XS),delivered,Xpressbees,May 1 2025
+1004,Sneha Patel,Floral Summer Kurta (L),out for delivery,Blue Dart,May 2 2025
+1005,Rohit Kumar,Denim Jacket (M),cancelled,,
+1006,Anjali Gupta,Black Midi Dress (XL),shipped,Delhivery,May 6 2025
+1007,Vikram Singh,White Linen Top (M),processing,,May 8 2025
+1008,Neha Joshi,Cream Palazzo Pants (S),delivered,FedEx,Apr 30 2025
+1009,Arjun Mehta,Floral Summer Kurta (XS),shipped,Delhivery,May 5 2025
+1010,Pooja Sharma,Denim Jacket (L),returned,Xpressbees,

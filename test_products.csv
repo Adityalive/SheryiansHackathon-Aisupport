@@ -1,0 +1,11 @@
+name,category,price,sizes,inStock,material,careInstructions,description
+Black Midi Dress,Dresses,1899,"XS,S,M,L,XL",true,100% Cotton,Hand wash cold,Elegant black midi dress perfect for any occasion
+White Linen Top,Tops,999,"S,M,L,XL",true,100% Linen,Machine wash cold,Breathable white linen top for summer
+Cream Palazzo Pants,Bottoms,1299,"XS,S,M,L",true,Rayon,Hand wash cold,Flowy cream palazzo pants for a relaxed look
+Floral Summer Kurta,Kurtas,1499,"S,M,L,XL,XXL",true,Cotton Blend,Machine wash cold,Vibrant floral kurta for festive occasions
+Denim Jacket,Jackets,2499,"S,M,L,XL",false,100% Denim,Machine wash warm,Classic denim jacket for all seasons
+Blue Wrap Dress,Dresses,1699,"XS,S,M,L",true,Chiffon,Dry clean only,Elegant wrap dress with floral print
+Striped Co-ord Set,Co-ords,2199,"S,M,L,XL",true,Cotton Blend,Machine wash cold,Trendy striped co-ord set top and pants
+Black Leather Belt,Accessories,499,"Free Size",true,Faux Leather,Wipe clean,Slim black belt to complete any outfit
+Floral Maxi Skirt,Skirts,1399,"XS,S,M,L,XL",true,Georgette,Hand wash cold,Flowy floral maxi skirt for summer days
+Oversized Hoodie,Winterwear,1999,"S,M,L,XL,XXL",false,Fleece,Machine wash warm,Cozy oversized hoodie for cool evenings
