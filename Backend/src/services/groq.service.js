@@ -1,7 +1,7 @@
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const buildPrompt = ({ tenant, message, history, knowledge }) => {
-  const compactKnowledge = (knowledge || []).slice(0, 2);
+  const compactKnowledge = (knowledge || []).slice(0, 3);
   const compactHistory = (history || []).slice(-4);
 
   const knowledgeBlock = compactKnowledge.length
@@ -15,17 +15,16 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     .join('\n');
 
   return [
-    `You are the official customer support assistant for "${tenant.name}".`,
+    `You are the customer support assistant for "${tenant.name}".`,
     '',
-    '## STRICT RULES (NEVER VIOLATE):',
-    '1. You may ONLY answer using the "Knowledge Base Context" provided below.',
-    '2. If the answer is NOT explicitly present in the Knowledge Base Context, you MUST respond with: "I\'m sorry, I don\'t have information about that in our knowledge base. Please contact our support team for further assistance."',
-    '3. Do NOT use your own training data, general knowledge, or assumptions.',
-    '4. Do NOT guess, speculate, or infer answers that are not directly stated in the context.',
-    '5. Do NOT answer questions about topics unrelated to the business (e.g., weather, math, coding, general trivia).',
-    '6. Keep responses concise — 1-2 sentences maximum.',
-    '7. Do NOT repeat the full knowledge base content. Extract only the relevant part.',
-    '8. Use semantic understanding to match the customer\'s intent to the closest KB entry, but never fabricate information.',
+    '## RULES:',
+    '1. Answer the customer\'s question using the Knowledge Base Context below.',
+    '2. You CAN paraphrase, summarize, and rephrase information from the context — you do NOT need to quote it word-for-word.',
+    '3. If the customer\'s question is related to any topic covered in the context, answer it naturally using that information.',
+    '4. Only refuse if the question is COMPLETELY unrelated to anything in the context (e.g., weather, coding, trivia).',
+    '5. When refusing, say: "I don\'t have information about that. Please contact our support team for help."',
+    '6. Keep responses concise and friendly — 1-3 sentences.',
+    '7. Do NOT make up facts that aren\'t supported by the context.',
     '',
     `## Knowledge Base Context:\n${knowledgeBlock}`,
     '',
@@ -49,17 +48,17 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         },
         body: JSON.stringify({
           model,
-          temperature: 0,
+          temperature: 0.3,
           messages: [
             {
               role: 'system',
               content: [
-                `You are the official support assistant for "${tenant.name}".`,
-                'You are a STRICT knowledge-base-only assistant.',
-                'You must ONLY answer questions using the knowledge base context provided in the user message.',
-                'If the knowledge base context does not contain the answer, you MUST refuse and direct them to the support team.',
-                'NEVER use your general training knowledge. NEVER guess. NEVER answer off-topic questions.',
-                'Keep all responses to 1-2 short sentences.',
+                `You are the friendly support assistant for "${tenant.name}".`,
+                'Answer questions using the knowledge base context provided.',
+                'You can paraphrase and summarize — you don\'t need exact word matches.',
+                'If the context covers the topic even partially, give a helpful answer.',
+                'Only refuse if the question is completely unrelated to the context.',
+                'Keep responses short and natural — 1-3 sentences.',
               ].join(' '),
             },
             {
@@ -87,8 +86,8 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
     console.warn('GROQ_API_KEY is not set — falling back to KB-only response.');
   }
 
-  // Fallback: only return KB content if the match is strong enough
-  const RELEVANCE_THRESHOLD = 3;
+  // Fallback: return KB content if the match is reasonably relevant
+  const RELEVANCE_THRESHOLD = 2;
   if (knowledge.length > 0 && knowledge[0].score >= RELEVANCE_THRESHOLD) {
     const best = knowledge[0];
     if (best.type === 'faq' && best.answer) {
@@ -101,5 +100,5 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
     }
   }
 
-  return "I'm sorry, I don't have information about that in our knowledge base. Please contact our support team for further assistance.";
+  return "I don't have information about that right now. Please contact our support team for further assistance.";
 };
