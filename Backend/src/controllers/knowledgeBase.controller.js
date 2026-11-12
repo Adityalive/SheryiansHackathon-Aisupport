@@ -41,12 +41,35 @@ export const handleUploadDocument = async (req, res) => {
     }
 
     let text = '';
-    if (req.file.mimetype === 'application/pdf') {
-      const { default: pdf } = await import('pdf-parse');
-      const data = await pdf(req.file.buffer);
-      text = data.text;
+    const isPdf =
+      req.file.mimetype === 'application/pdf' ||
+      req.file.mimetype === 'application/x-pdf' ||
+      req.file.originalname?.toLowerCase().endsWith('.pdf');
+
+    if (isPdf) {
+      try {
+        const pdfModule = await import('pdf-parse');
+        if (pdfModule.PDFParse) {
+          const parser = new pdfModule.PDFParse({ data: req.file.buffer });
+          const result = await parser.getText();
+          text = result?.text || '';
+        } else if (typeof pdfModule.default === 'function') {
+          const data = await pdfModule.default(req.file.buffer);
+          text = data?.text || '';
+        } else if (typeof pdfModule === 'function') {
+          const data = await pdfModule(req.file.buffer);
+          text = data?.text || '';
+        }
+      } catch (pdfErr) {
+        console.error('PDF parsing error, attempting string extraction fallback:', pdfErr.message);
+        text = req.file.buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ');
+      }
     } else {
       text = req.file.buffer.toString('utf-8');
+    }
+
+    if (!text || !text.trim()) {
+      text = `Document: ${req.file.originalname}`;
     }
 
     // Smart CSV Handling
