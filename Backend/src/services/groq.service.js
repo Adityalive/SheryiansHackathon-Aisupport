@@ -36,7 +36,11 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
 
 export const generateAssistantReply = async ({ tenant, message, history = [], knowledge = [] }) => {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  let model = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
+  // Prompt-guard is a security classifier that outputs numbers, not chat text
+  if (model.includes('prompt-guard') || model === 'llama-3.1-8b-instant') {
+    model = 'qwen/qwen3.8-27b';
+  }
 
   if (apiKey) {
     try {

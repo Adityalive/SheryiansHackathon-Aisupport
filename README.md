@@ -218,7 +218,7 @@ JWT_SECRET=your-super-secret-key
 # AI Models
 GEMINI_API_KEY=your-gemini-api-key
 GROQ_API_KEY=your-groq-api-key
-GROQ_MODEL=llama-3.1-8b-instant
+GROQ_MODEL=qwen/qwen3.8-27b
 
 # Voice (Optional — for phone call support)
 TWILIO_ACCOUNT_SID=your-twilio-sid
