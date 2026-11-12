@@ -36,7 +36,7 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
 
 export const generateAssistantReply = async ({ tenant, message, history = [], knowledge = [] }) => {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
   if (apiKey) {
     try {
