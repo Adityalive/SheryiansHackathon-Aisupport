@@ -22,11 +22,11 @@ export const resolveTenantIdentity = (req = {}) => {
 };
 
 export const createTenant = async ({ name, slug, settings = {} }) => {
-  const normalizedSlug = normalizeSlug(slug || name);
+  let normalizedSlug = normalizeSlug(slug || name);
   const existingTenant = await getTenantBySlug(normalizedSlug);
 
   if (existingTenant) {
-    throw new Error('Tenant slug already exists');
+    normalizedSlug = `${normalizedSlug}-${Math.random().toString(36).substring(2, 6)}`;
   }
 
   const payload = {

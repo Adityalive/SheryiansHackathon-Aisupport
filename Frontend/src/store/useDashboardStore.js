@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import axios from 'axios';
 import kbService from '../services/kb.service';
 import supportService from '../features/support-widget/apiservices/support.service';
-
-const API_BASE = 'http://localhost:3000/api';
+import { API_BASE } from '../config/api.config';
 
 export const useDashboardStore = create((set, get) => ({
   // Active tab

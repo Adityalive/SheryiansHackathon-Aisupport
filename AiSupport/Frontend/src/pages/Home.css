@@ -1,0 +1,382 @@
+.home-root {
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.2);
+  --secondary: #a855f7;
+  --bg-dark: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Hero Section ────────────────── */
+.hero-section {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  padding: 80px 8% 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: center;
+  gap: 60px;
+  position: relative;
+}
+
+.hero-content {
+  animation: fadeIn 0.8s ease-out;
+  position: relative;
+  z-index: 10; /* High z-index to stay above background elements */
+}
+
+.hero-content h1 {
+  font-size: 4.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+.hero-content p {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 600px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 20; /* Buttons must be on top */
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 24px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+}
+
+.stat-item strong {
+  display: block;
+  font-size: 24px;
+  color: var(--text-main);
+}
+
+.stat-item span {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ── Hero Visual ────────────────── */
+.hero-visual {
+  position: relative;
+  height: 500px;
+  z-index: 1; /* Keep visuals below content if they overlap */
+}
+
+.visual-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.glass-mockup {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  height: 400px;
+  width: 100%;
+  position: relative;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.floating-card {
+  position: absolute;
+  background: white;
+  color: #1e293b;
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  z-index: 5;
+  animation: float 4s ease-in-out infinite;
+}
+
+.floating-card.c1 { top: 10%; left: -20px; color: var(--primary); }
+.floating-card.c2 { bottom: 20%; right: -20px; animation-delay: 1s; color: var(--secondary); }
+
+.btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #6366f1, #a855f7);
+  color: white !important;
+  border: none;
+  border-radius: 100px; /* Pill shape from screenshot */
+  padding: 16px 40px;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 100px;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ── Navigation Header (In-Page) ────────────────── */
+.landing-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 8%;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+}
+
+/* ── Hero Auth Links ────────────────── */
+.hero-auth-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: -20px;
+  margin-bottom: 40px;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.hero-auth-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.hero-auth-links a:hover {
+  color: var(--primary);
+}
+
+.hero-auth-links .divider {
+  opacity: 0.2;
+}
+
+/* ── Quick Access ────────────────── */
+.quick-access {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 0 8% 100px;
+  max-width: 1400px;
+  margin: -60px auto 0;
+  position: relative;
+  z-index: 20;
+}
+
+.access-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 32px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.access-card:hover {
+  transform: translateY(-8px);
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.access-card.highlight {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+.access-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.access-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.card-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ── CTA Footer Actions ────────────────── */
+.cta-footer-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* ── Mockup Styles ────────────────── */
+.mock-tab {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mock-sidebar {
+  width: 60px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mock-sidebar span {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.mock-chart {
+  height: 100px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.mock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.mock-grid span {
+  height: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .landing-nav .nav-actions { display: none; }
+  .hero-auth-links { flex-direction: column; align-items: center; }
+  .hero-auth-links .divider { display: none; }
+  .quick-access { margin-top: 40px; }
+}

@@ -16,7 +16,8 @@ const __dirname = path.dirname(__filename);
 const corsMiddleware = (req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-Id, X-Session-Id, X-Customer-Name');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-Id, X-Session-Id, X-Customer-Name, Accept, Origin, X-Requested-With');
+  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
@@ -42,6 +43,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/voice', voiceRoutes);
+app.use('/api/tickets', voiceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/knowledge', knowledgeBaseRoutes);
 

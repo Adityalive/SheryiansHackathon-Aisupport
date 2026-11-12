@@ -1,8 +1,13 @@
 (function () {
   const scriptTag = document.currentScript;
-  const businessId = scriptTag.getAttribute("data-business-id");
-  const scriptSrc = scriptTag.src;
-  const API_BASE = scriptSrc.substring(0, scriptSrc.lastIndexOf('/'));
+  const businessId = scriptTag ? scriptTag.getAttribute("data-business-id") : null;
+  let API_BASE = "";
+  try {
+    const url = new URL(scriptTag.src);
+    API_BASE = url.origin;
+  } catch (e) {
+    API_BASE = window.location.origin;
+  }
 
   if (!businessId) {
     console.error(
