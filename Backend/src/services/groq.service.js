@@ -15,22 +15,23 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     .join('\n');
 
   return [
-    `You are a helpful support bot for ${tenant.name}.`,
-    'Use only the provided knowledge base context.',
-    'Keep the reply short: 1 short sentence if possible.',
-    'Do not explain your reasoning.',
-    'Do not repeat the full document.',
+    `You are the official customer support assistant for "${tenant.name}".`,
     '',
-    'Use semantic matching, not only exact wording.',
-    'If the answer is not in the context, refuse briefly.',
+    '## STRICT RULES (NEVER VIOLATE):',
+    '1. You may ONLY answer using the "Knowledge Base Context" provided below.',
+    '2. If the answer is NOT explicitly present in the Knowledge Base Context, you MUST respond with: "I\'m sorry, I don\'t have information about that in our knowledge base. Please contact our support team for further assistance."',
+    '3. Do NOT use your own training data, general knowledge, or assumptions.',
+    '4. Do NOT guess, speculate, or infer answers that are not directly stated in the context.',
+    '5. Do NOT answer questions about topics unrelated to the business (e.g., weather, math, coding, general trivia).',
+    '6. Keep responses concise — 1-2 sentences maximum.',
+    '7. Do NOT repeat the full knowledge base content. Extract only the relevant part.',
+    '8. Use semantic understanding to match the customer\'s intent to the closest KB entry, but never fabricate information.',
     '',
-    'If the information is genuinely missing, say: "I am sorry, I do not have specific information about that. Please contact our support team directly."',
+    `## Knowledge Base Context:\n${knowledgeBlock}`,
     '',
-    `Knowledge Base Context:\n${knowledgeBlock}`,
+    `## Conversation History:\n${historyBlock || 'No previous messages.'}`,
     '',
-    `Conversation History:\n${historyBlock || 'No previous messages.'}`,
-    '',
-    `Customer Question: ${message}`,
+    `## Customer Question: ${message}`,
   ].join('\n');
 };
 
@@ -52,7 +53,14 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
           messages: [
             {
               role: 'system',
-              content: `You are the official support agent for ${tenant.name}. Answer only from the provided knowledge base context. Keep it concise.`,
+              content: [
+                `You are the official support assistant for "${tenant.name}".`,
+                'You are a STRICT knowledge-base-only assistant.',
+                'You must ONLY answer questions using the knowledge base context provided in the user message.',
+                'If the knowledge base context does not contain the answer, you MUST refuse and direct them to the support team.',
+                'NEVER use your general training knowledge. NEVER guess. NEVER answer off-topic questions.',
+                'Keep all responses to 1-2 short sentences.',
+              ].join(' '),
             },
             {
               role: 'user',
