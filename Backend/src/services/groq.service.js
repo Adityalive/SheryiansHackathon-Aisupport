@@ -77,20 +77,29 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
           return content;
         }
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('Groq API Error Details:', JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
       console.error(`Groq request failed critically: ${error.message}`);
     }
+  } else {
+    console.warn('GROQ_API_KEY is not set — falling back to KB-only response.');
   }
 
-  // Smarter fallback: summarize the best match instead of dumping it raw
-  if (knowledge.length > 0) {
+  // Fallback: only return KB content if the match is strong enough
+  const RELEVANCE_THRESHOLD = 3;
+  if (knowledge.length > 0 && knowledge[0].score >= RELEVANCE_THRESHOLD) {
     const best = knowledge[0];
-    const answer = best.answer || best.content || 'I found a related help article, but it does not contain a direct answer yet.';
-    return String(answer).trim().split(/(?<=[.!?])\s+/)[0].slice(0, 220);
+    if (best.type === 'faq' && best.answer) {
+      return String(best.answer).trim().slice(0, 300);
+    }
+    const content = best.content || best.answer || '';
+    if (content.trim()) {
+      const firstSentence = content.trim().split(/(?<=[.!?])\s+/)[0] || content.trim();
+      return firstSentence.slice(0, 300);
+    }
   }
 
-  return 'I am sorry, I do not have specific information in my knowledge base to answer that. Please contact our support team.';
+  return "I'm sorry, I don't have information about that in our knowledge base. Please contact our support team for further assistance.";
 };
