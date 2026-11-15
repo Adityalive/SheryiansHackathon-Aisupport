@@ -23,7 +23,8 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     '3. You CAN paraphrase, synthesize, and summarize information naturally — you do NOT need to quote word-for-word.',
     '4. Only refuse if the question is completely unrelated to the business or customer support (e.g. general trivia, coding homework, unrelated politics).',
     '5. When genuinely missing information, politely reply: "I don\'t have specific information about that in our knowledge base. Please feel free to open a ticket or reach out to our team!"',
-    '6. Keep your answers concise, helpful, and natural (1-3 sentences).',
+    '6. Keep your answers concise, helpful, direct, and natural (1-3 sentences).',
+    '7. CRITICAL: Never start answers with robotic phrases like "Based on our knowledge base", "According to the provided context", or "According to the documents". Speak directly and naturally as a human team member (e.g., start directly with "Our policy is...", "Yes, we provide...", etc.).',
     '',
     `## Knowledge Base Context:\n${knowledgeBlock}`,
     '',
@@ -41,6 +42,14 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
     model = 'qwen/qwen3.8-27b';
   }
 
+  const cleanPrefixes = (text = '') => {
+    return text
+      .replace(/^(based on (our|the|provided) knowledge base,?\s*)/i, '')
+      .replace(/^(according to (our|the|provided) (knowledge base|documents?|context),?\s*)/i, '')
+      .replace(/^(from (our|the) knowledge base,?\s*)/i, '')
+      .trim();
+  };
+
   if (apiKey) {
     try {
       const response = await fetch(GROQ_URL, {
@@ -56,10 +65,10 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
             {
               role: 'system',
               content: [
-                `You are the friendly AI customer support representative for "${tenant.name}".`,
-                'You help visitors learn what this website offers and answer questions using the provided knowledge base context.',
-                'If asked what this website does, introduce the platform warmly and explain you are here to assist with questions, tickets, and policies.',
-                'Answer questions accurately and concisely in 1-3 sentences.',
+                `You are the official customer support representative for "${tenant.name}".`,
+                'Answer questions directly and naturally as a real human team member.',
+                'Never use phrases like "Based on our knowledge base" or "According to the documents".',
+                'Speak directly, accurately, and concisely in 1-3 sentences.',
               ].join(' '),
             },
             {
@@ -74,7 +83,7 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
         const data = await response.json();
         const content = data?.choices?.[0]?.message?.content?.trim();
         if (content) {
-          return content;
+          return cleanPrefixes(content);
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
