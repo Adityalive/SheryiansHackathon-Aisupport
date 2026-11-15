@@ -211,9 +211,7 @@ export const seedKnowledgeBase = async (tenantId, items = []) => {
 };
 
 export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 4) => {
-  const items = await listKnowledgeBaseItems(tenantId);
   let messageEmbedding = null;
-  
   try {
     messageEmbedding = await getEmbedding(message);
   } catch (error) {
@@ -221,7 +219,89 @@ export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 4)
   }
 
   const matches = [];
+  const objectTenantId = mongoose.isValidObjectId(tenantId)
+    ? new mongoose.Types.ObjectId(tenantId)
+    : tenantId;
 
+  // 1. True Vector Search via MongoDB Atlas $vectorSearch
+  if (messageEmbedding && Array.isArray(messageEmbedding) && messageEmbedding.length > 0) {
+    try {
+      const vectorPipeline = [
+        {
+          $vectorSearch: {
+            index: 'chunks_vector_index',
+            path: 'chunks.embedding',
+            queryVector: messageEmbedding,
+            numCandidates: 50,
+            limit: limit * 2,
+            filter: {
+              tenantId: { $eq: objectTenantId },
+              status: { $eq: 'active' },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            type: 1,
+            title: 1,
+            question: 1,
+            answer: 1,
+            content: 1,
+            tags: 1,
+            chunks: 1,
+            score: { $meta: 'vectorSearchScore' },
+          },
+        },
+      ];
+
+      const vectorResults = await KnowledgeBaseItem.aggregate(vectorPipeline);
+
+      if (vectorResults && vectorResults.length > 0) {
+        for (const item of vectorResults) {
+          let bestChunkText = '';
+          let bestSim = 0;
+          if (item.chunks && item.chunks.length > 0) {
+            for (const chunk of item.chunks) {
+              if (chunk.embedding && chunk.embedding.length) {
+                const sim = cosineSimilarity(messageEmbedding, chunk.embedding);
+                if (sim > bestSim) {
+                  bestSim = sim;
+                  bestChunkText = chunk.chunkText;
+                }
+              }
+            }
+          }
+
+          const rawContent = bestChunkText || item.content || item.answer || '';
+          const focusedContent =
+            item.type === 'document'
+              ? extractRelevantSnippet(rawContent, message)
+              : rawContent;
+
+          matches.push({
+            id: item._id,
+            type: item.type,
+            title: item.title,
+            question: item.question,
+            answer: item.answer,
+            content: focusedContent,
+            tags: item.tags || [],
+            score: (item.score || 0) * 10,
+          });
+        }
+
+        if (matches.length > 0) {
+          return matches.sort((a, b) => b.score - a.score).slice(0, limit);
+        }
+      }
+    } catch (vErr) {
+      console.warn('Atlas $vectorSearch failed, falling back to hybrid scanner:', vErr.message);
+    }
+  }
+
+  // 2. Fallback in-memory scanner
+  const items = await listKnowledgeBaseItems(tenantId);
   for (const item of items) {
     let bestChunkScore = 0;
     let bestChunkText = '';
@@ -238,13 +318,8 @@ export const retrieveKnowledgeBaseContext = async (tenantId, message, limit = 4)
       }
     }
 
-    // Keyword score as a weight/tie-breaker
     const keywordScore = scoreKnowledgeItem(item, message);
-    
-    // Normalize and combine scores
-    // bestChunkScore is typically 0.6 - 0.9 for good matches
-    // keywordScore can be anywhere from 0 to 10+
-    const combinedScore = (bestChunkScore * 10) + keywordScore;
+    const combinedScore = bestChunkScore * 10 + keywordScore;
 
     if (combinedScore > 1.5) {
       const rawContent = bestChunkText || item.content || item.answer || '';
