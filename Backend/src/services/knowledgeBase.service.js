@@ -142,7 +142,11 @@ export const createKnowledgeBaseItem = async (tenantId, payload) => {
   let chunksData = payload.chunks || [];
   if (chunksData.length === 0) {
     const textToChunk = `${title}\n${question}\n${content}`;
-    const textChunks = chunkText(textToChunk, 420, 60);
+    // Use 1200 character chunks with 100 overlap for coherent semantic context without exceeding API limits
+    let textChunks = chunkText(textToChunk, 1200, 100);
+    if (textChunks.length > 80) {
+      textChunks = textChunks.slice(0, 80);
+    }
     
     // Generate embeddings for chunks
     if (textChunks.length > 0) {
@@ -151,7 +155,7 @@ export const createKnowledgeBaseItem = async (tenantId, payload) => {
         chunksData = textChunks.map((text, i) => ({
           chunkText: text,
           chunkOrder: i,
-          embedding: embeddings[i]
+          embedding: embeddings[i] || []
         }));
       } catch (error) {
         console.warn('Embedding generation failed during creation:', error.message);

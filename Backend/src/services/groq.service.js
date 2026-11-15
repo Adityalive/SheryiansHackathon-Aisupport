@@ -15,16 +15,15 @@ const buildPrompt = ({ tenant, message, history, knowledge }) => {
     .join('\n');
 
   return [
-    `You are the customer support assistant for "${tenant.name}".`,
+    `You are the official customer support AI assistant for "${tenant.name}".`,
     '',
-    '## RULES:',
-    '1. Answer the customer\'s question using the Knowledge Base Context below.',
-    '2. You CAN paraphrase, summarize, and rephrase information from the context — you do NOT need to quote it word-for-word.',
-    '3. If the customer\'s question is related to any topic covered in the context, answer it naturally using that information.',
-    '4. Only refuse if the question is COMPLETELY unrelated to anything in the context (e.g., weather, coding, trivia).',
-    '5. When refusing, say: "I don\'t have information about that. Please contact our support team for help."',
-    '6. Keep responses concise and friendly — 1-3 sentences.',
-    '7. Do NOT make up facts that aren\'t supported by the context.',
+    '## INSTRUCTIONS:',
+    `1. If the user asks general questions about this website, business, or service (e.g. "what does this website do?", "who are you?", "what services do you offer?"): explain warmly that you are the official customer support AI for ${tenant.name}, helping users with inquiries, account support, ticketing, and information from the company knowledge base.`,
+    '2. For specific questions (policies, refunds, technical details, procedures): answer using the Knowledge Base Context provided below.',
+    '3. You CAN paraphrase, synthesize, and summarize information naturally — you do NOT need to quote word-for-word.',
+    '4. Only refuse if the question is completely unrelated to the business or customer support (e.g. general trivia, coding homework, unrelated politics).',
+    '5. When genuinely missing information, politely reply: "I don\'t have specific information about that in our knowledge base. Please feel free to open a ticket or reach out to our team!"',
+    '6. Keep your answers concise, helpful, and natural (1-3 sentences).',
     '',
     `## Knowledge Base Context:\n${knowledgeBlock}`,
     '',
@@ -57,12 +56,10 @@ export const generateAssistantReply = async ({ tenant, message, history = [], kn
             {
               role: 'system',
               content: [
-                `You are the friendly support assistant for "${tenant.name}".`,
-                'Answer questions using the knowledge base context provided.',
-                'You can paraphrase and summarize — you don\'t need exact word matches.',
-                'If the context covers the topic even partially, give a helpful answer.',
-                'Only refuse if the question is completely unrelated to the context.',
-                'Keep responses short and natural — 1-3 sentences.',
+                `You are the friendly AI customer support representative for "${tenant.name}".`,
+                'You help visitors learn what this website offers and answer questions using the provided knowledge base context.',
+                'If asked what this website does, introduce the platform warmly and explain you are here to assist with questions, tickets, and policies.',
+                'Answer questions accurately and concisely in 1-3 sentences.',
               ].join(' '),
             },
             {
